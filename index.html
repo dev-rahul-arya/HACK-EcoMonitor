@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoMonitor | Environmental Intelligence Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <span class="loader-text">Initializing EcoMonitor</span>
+        </div>
+    </div>
+
+    <!-- Alert Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Main Application -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
+                        <path d="M20 8C20 8 12 14 12 22C12 26.4183 15.5817 30 20 30C24.4183 30 28 26.4183 28 22C28 14 20 8 20 8Z" fill="currentColor" opacity="0.3"/>
+                        <path d="M20 12V28M14 20H26" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <div class="logo-text">
+                        <span class="logo-name">EcoMonitor</span>
+                        <span class="logo-tagline">Environmental Intelligence</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item active" data-view="dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="9" rx="1"/>
+                            <rect x="14" y="3" width="7" height="5" rx="1"/>
+                            <rect x="14" y="12" width="7" height="9" rx="1"/>
+                            <rect x="3" y="16" width="7" height="5" rx="1"/>
+                        </svg>
+                        <span>Dashboard</span>
+                    </li>
+                    <li class="nav-item" data-view="air-quality">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v6M12 22v-6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M22 12h-6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/>
+                        </svg>
+                        <span>Air Quality</span>
+                    </li>
+                    <li class="nav-item" data-view="water-quality">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                        </svg>
+                        <span>Water Quality</span>
+                    </li>
+                    <li class="nav-item" data-view="weather">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                            <circle cx="12" cy="12" r="4"/>
+                        </svg>
+                        <span>Weather</span>
+                    </li>
+                    <li class="nav-item" data-view="alerts">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span>Alerts</span>
+                        <span class="nav-badge" id="alert-count">0</span>
+                    </li>
+                    <li class="nav-item" data-view="ai-insights">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
+                            <path d="M16 14v6a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-6"/>
+                            <circle cx="12" cy="6" r="1"/>
+                        </svg>
+                        <span>AI Insights</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status" id="connection-status">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+                <div class="last-update">
+                    <span>Last sync: </span>
+                    <span id="last-update-time">--:--</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menu-toggle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="page-title">
+                        <h1 id="current-view-title">Dashboard</h1>
+                        <p class="page-subtitle" id="current-view-subtitle">Real-time environmental monitoring</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" placeholder="Search locations, sensors..." id="search-input">
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" id="refresh-btn" title="Refresh Data">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 4v6h-6"/>
+                                <path d="M1 20v-6h6"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn notification-btn" id="notification-btn" title="Notifications">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                            <span class="notification-indicator" id="notification-indicator"></span>
+                        </button>
+                        <div class="location-selector">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <select id="location-select">
+                                <option value="all">All Locations</option>
+                                <option value="downtown">Downtown Station</option>
+                                <option value="industrial">Industrial Zone</option>
+                                <option value="residential">Residential Area</option>
+                                <option value="waterfront">Waterfront District</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section class="view active" id="view-dashboard">
+                <!-- Quick Stats Row -->
+                <div class="stats-grid">
+                    <div class="stat-card" data-type="aqi">
+                        <div class="stat-icon aqi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Air Quality Index</span>
+                            <div class="stat-value-row">
+                                <span class="stat-value" id="stat-aqi">--</span>
+                                <span class="stat-unit">AQI</span>
+                            </div>
+                            <div class="stat-trend" id="stat-aqi-trend">
+                                <span class="trend-icon">--</span>
+                                <span class="trend-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="stat-indicator" id="stat-aqi-indicator"></div>
+                    </div>
+
+                    <div class="stat-card" data-type="temperature">
+                        <div class="stat-icon temperature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Temperature</span>
+                            <div class="stat-value-row">
+                                <span class="stat-value" id="stat-temp">--</span>
+                                <span class="stat-unit">°C</span>
+                            </div>
+                            <div class="stat-trend" id="stat-temp-trend">
+                                <span class="trend-icon">--</span>
+                                <span class="trend-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="stat-indicator" id="stat-temp-indicator"></div>
+                    </div>
+
+                    <div class="stat-card" data-type="humidity">
+                        <div class="stat-icon humidity">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Humidity</span>
+                            <div class="stat-value-row">
+                                <span class="stat-value" id="stat-humidity">--</span>
+                                <span class="stat-unit">%</span>
+                            </div>
+                            <div class="stat-trend" id="stat-humidity-trend">
+                                <span class="trend-icon">--</span>
+                                <span class="trend-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="stat-indicator" id="stat-humidity-indicator"></div>
+                    </div>
+
+                    <div class="stat-card" data-type="water-ph">
+                        <div class="stat-icon water">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Water pH Level</span>
+                            <div class="stat-value-row">
+                                <span class="stat-value" id="stat-ph">--</span>
+                                <span class="stat-unit">pH</span>
+                            </div>
+                            <div class="stat-trend" id="stat-ph-trend">
+                                <span class="trend-icon">--</span>
+                                <span class="trend-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="stat-indicator" id="stat-ph-indicator"></div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card large">
+                        <div class="card-header">
+                            <h3>Environmental Trends</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-range="1h">1H</button>
+                                <button class="chart-btn" data-range="6h">6H</button>
+                                <button class="chart-btn" data-range="24h">24H</button>
+                                <button class="chart-btn" data-range="7d">7D</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trends-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Pollutant Distribution</h3>
+                            <button class="expand-btn" title="Expand">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <polyline points="9 21 3 21 3 15"/>
+                                    <line x1="21" y1="3" x2="14" y2="10"/>
+                                    <line x1="3" y1="21" x2="10" y2="14"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="pollutants-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights and Alerts Row -->
+                <div class="content-grid">
+                    <!-- AI Insights Panel -->
+                    <div class="panel ai-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <h3>AI Analysis</h3>
+                            </div>
+                            <button class="panel-action" id="refresh-ai" title="Refresh Analysis">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6"/>
+                                    <path d="M1 20v-6h6"/>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="ai-content" id="ai-insights-content">
+                            <div class="ai-loading">
+                                <div class="ai-loader"></div>
+                                <span>Analyzing environmental data...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Alerts Panel -->
+                    <div class="panel alerts-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <h3>Recent Alerts</h3>
+                            </div>
+                            <a href="#" class="panel-link" data-view="alerts">View All</a>
+                        </div>
+                        <div class="alerts-list" id="recent-alerts">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M9 12l2 2 4-4"/>
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                                <p>No active alerts</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Sensors Panel -->
+                    <div class="panel sensors-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                    <circle cx="9" cy="9" r="2"/>
+                                    <circle cx="15" cy="9" r="2"/>
+                                    <circle cx="9" cy="15" r="2"/>
+                                    <circle cx="15" cy="15" r="2"/>
+                                </svg>
+                                <h3>Sensor Network</h3>
+                            </div>
+                            <span class="sensor-count"><span id="active-sensor-count">0</span> / <span id="total-sensor-count">0</span> Online</span>
+                        </div>
+                        <div class="sensors-grid" id="sensors-grid">
+                            <!-- Sensors will be dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn" id="action-export">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>Export Report</span>
+                    </button>
+                    <button class="quick-action-btn" id="action-alert-settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                        </svg>
+                        <span>Alert Settings</span>
+                    </button>
+                    <button class="quick-action-btn primary" id="action-emergency">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span>Emergency Protocol</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Air Quality View -->
+            <section class="view" id="view-air-quality">
+                <div class="view-content">
+                    <div class="detail-grid">
+                        <div class="detail-card highlight">
+                            <div class="detail-header">
+                                <span class="detail-label">Current AQI</span>
+                                <span class="detail-badge" id="aqi-status-badge">--</span>
+                            </div>
+                            <div class="detail-value" id="detail-aqi">--</div>
+                            <div class="aqi-scale">
+                                <div class="aqi-bar">
+                                    <div class="aqi-marker" id="aqi-marker"></div>
+                                </div>
+                                <div class="aqi-labels">
+                                    <span>Good</span>
+                                    <span>Moderate</span>
+                                    <span>Unhealthy</span>
+                                    <span>Hazardous</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pollutants-grid">
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">PM2.5</span>
+                                <span class="pollutant-value" id="pm25-value">--</span>
+                                <span class="pollutant-unit">μg/m³</span>
+                            </div>
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">PM10</span>
+                                <span class="pollutant-value" id="pm10-value">--</span>
+                                <span class="pollutant-unit">μg/m³</span>
+                            </div>
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">O₃</span>
+                                <span class="pollutant-value" id="o3-value">--</span>
+                                <span class="pollutant-unit">ppb</span>
+                            </div>
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">NO₂</span>
+                                <span class="pollutant-value" id="no2-value">--</span>
+                                <span class="pollutant-unit">ppb</span>
+                            </div>
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">SO₂</span>
+                                <span class="pollutant-value" id="so2-value">--</span>
+                                <span class="pollutant-unit">ppb</span>
+                            </div>
+                            <div class="pollutant-card">
+                                <span class="pollutant-name">CO</span>
+                                <span class="pollutant-value" id="co-value">--</span>
+                                <span class="pollutant-unit">ppm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card full-width">
+                        <div class="card-header">
+                            <h3>Air Quality History</h3>
+                        </div>
+                        <div class="chart-container large">
+                            <canvas id="aqi-history-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="recommendations-section">
+                        <h3>Health Recommendations</h3>
+                        <div class="recommendations-list" id="air-recommendations">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Water Quality View -->
+            <section class="view" id="view-water-quality">
+                <div class="view-content">
+                    <div class="detail-grid water">
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">pH Level</span>
+                            <span class="metric-value" id="water-ph-detail">--</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="ph-bar"></div>
+                            </div>
+                        </div>
+
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <circle cx="12" cy="12" r="4"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">Dissolved Oxygen</span>
+                            <span class="metric-value" id="water-do-detail">--</span>
+                            <span class="metric-unit">mg/L</span>
+                        </div>
+
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">Temperature</span>
+                            <span class="metric-value" id="water-temp-detail">--</span>
+                            <span class="metric-unit">°C</span>
+                        </div>
+
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">Turbidity</span>
+                            <span class="metric-value" id="water-turbidity-detail">--</span>
+                            <span class="metric-unit">NTU</span>
+                        </div>
+
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">TDS</span>
+                            <span class="metric-value" id="water-tds-detail">--</span>
+                            <span class="metric-unit">ppm</span>
+                        </div>
+
+                        <div class="water-metric">
+                            <div class="metric-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            </div>
+                            <span class="metric-label">Conductivity</span>
+                            <span class="metric-value" id="water-conductivity-detail">--</span>
+                            <span class="metric-unit">μS/cm</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-card full-width">
+                        <div class="card-header">
+                            <h3>Water Quality Trends</h3>
+                        </div>
+                        <div class="chart-container large">
+                            <canvas id="water-quality-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="contamination-alerts" id="water-alerts">
+                        <h3>Contamination Alerts</h3>
+                        <div class="alert-list" id="water-alert-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weather View -->
+            <section class="view" id="view-weather">
+                <div class="view-content">
+                    <div class="weather-main">
+                        <div class="current-weather">
+                            <div class="weather-icon" id="weather-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="5"/>
+                                    <line x1="12" y1="1" x2="12" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="23"/>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                    <line x1="1" y1="12" x2="3" y2="12"/>
+                                    <line x1="21" y1="12" x2="23" y2="12"/>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                </svg>
+                            </div>
+                            <div class="weather-temp">
+                                <span class="temp-value" id="weather-temp-value">--</span>
+                                <span class="temp-unit">°C</span>
+                            </div>
+                            <div class="weather-condition" id="weather-condition">--</div>
+                            <div class="weather-location" id="weather-location">Loading location...</div>
+                        </div>
+
+                        <div class="weather-details">
+                            <div class="weather-detail-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                                </svg>
+                                <div class="detail-info">
+                                    <span class="detail-label">Humidity</span>
+                                    <span class="detail-value" id="weather-humidity">--%</span>
+                                </div>
+                            </div>
+                            <div class="weather-detail-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                                </svg>
+                                <div class="detail-info">
+                                    <span class="detail-label">Wind Speed</span>
+                                    <span class="detail-value" id="weather-wind">-- km/h</span>
+                                </div>
+                            </div>
+                            <div class="weather-detail-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="20" x2="12" y2="10"/>
+                                    <line x1="18" y1="20" x2="18" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="16"/>
+                                </svg>
+                                <div class="detail-info">
+                                    <span class="detail-label">Pressure</span>
+                                    <span class="detail-value" id="weather-pressure">-- hPa</span>
+                                </div>
+                            </div>
+                            <div class="weather-detail-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="4"/>
+                                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                                </svg>
+                                <div class="detail-info">
+                                    <span class="detail-label">UV Index</span>
+                                    <span class="detail-value" id="weather-uv">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="forecast-section">
+                        <h3>24-Hour Forecast</h3>
+                        <div class="forecast-scroll" id="hourly-forecast">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div class="weather-alerts" id="weather-alerts-section">
+                        <h3>Weather Warnings</h3>
+                        <div class="warning-list" id="weather-warning-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Alerts View -->
+            <section class="view" id="view-alerts">
+                <div class="view-content">
+                    <div class="alerts-header">
+                        <div class="alerts-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="critical">Critical</button>
+                            <button class="filter-btn" data-filter="warning">Warning</button>
+                            <button class="filter-btn" data-filter="info">Info</button>
+                        </div>
+                        <div class="alerts-actions">
+                            <button class="btn-secondary" id="mark-all-read">Mark All Read</button>
+                            <button class="btn-secondary" id="export-alerts">Export Alerts</button>
+                        </div>
+                    </div>
+
+                    <div class="alerts-timeline" id="alerts-timeline">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <div class="alert-settings-panel" id="alert-settings-panel" style="display: none;">
+                        <h3>Alert Configuration</h3>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>Email Notifications</label>
+                                <input type="email" id="alert-email" placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>AQI Threshold</label>
+                                <input type="range" id="aqi-threshold" min="50" max="300" value="150">
+                                <span class="range-value" id="aqi-threshold-value">150</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Temperature Threshold (°C)</label>
+                                <input type="range" id="temp-threshold" min="25" max="50" value="40">
+                                <span class="range-value" id="temp-threshold-value">40</span>
+                            </div>
+                            <div class="form-group checkbox">
+                                <input type="checkbox" id="instant-alerts" checked>
+                                <label for="instant-alerts">Enable instant email alerts</label>
+                            </div>
+                            <button class="btn-primary" id="save-alert-settings">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Insights View -->
+            <section class="view" id="view-ai-insights">
+                <div class="view-content">
+                    <div class="ai-dashboard">
+                        <div class="ai-summary-card">
+                            <div class="ai-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
+                                    <path d="M16 14v6a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-6"/>
+                                </svg>
+                                <h2>Environmental Intelligence Report</h2>
+                            </div>
+                            <div class="ai-timestamp" id="ai-report-time">Last analyzed: --</div>
+                            <div class="ai-report" id="ai-full-report">
+                                <div class="ai-loading large">
+                                    <div class="ai-loader"></div>
+                                    <span>Generating comprehensive analysis...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-actions-grid">
+                            <button class="ai-action-card" id="analyze-trends">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="20" x2="18" y2="10"/>
+                                    <line x1="12" y1="20" x2="12" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="14"/>
+                                </svg>
+                                <span>Analyze Trends</span>
+                            </button>
+                            <button class="ai-action-card" id="predict-anomalies">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <span>Predict Anomalies</span>
+                            </button>
+                            <button class="ai-action-card" id="get-recommendations">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <span>Get Recommendations</span>
+                            </button>
+                            <button class="ai-action-card" id="generate-report">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                <span>Generate Report</span>
+                            </button>
+                        </div>
+
+                        <div class="anomaly-detection">
+                            <h3>Anomaly Detection</h3>
+                            <div class="anomaly-chart-container">
+                                <canvas id="anomaly-chart"></canvas>
+                            </div>
+                            <div class="anomaly-list" id="anomaly-list">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Alert Modal -->
+    <div class="modal" id="alert-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Alert Details</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modal-dismiss">Dismiss</button>
+                <button class="btn-primary" id="modal-action">Take Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Modal -->
+    <div class="modal emergency-modal" id="emergency-modal">
+        <div class="modal-content emergency">
+            <div class="modal-header emergency">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <h2>Emergency Protocol</h2>
+            </div>
+            <div class="modal-body">
+                <p>This will trigger emergency notifications to all registered contacts and relevant authorities.</p>
+                <div class="emergency-options">
+                    <label class="emergency-option">
+                        <input type="checkbox" checked> Notify Environmental Agency
+                    </label>
+                    <label class="emergency-option">
+                        <input type="checkbox" checked> Send Public Alert
+                    </label>
+                    <label class="emergency-option">
+                        <input type="checkbox"> Contact Emergency Services
+                    </label>
+                </div>
+                <textarea id="emergency-message" placeholder="Add details about the emergency situation..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="emergency-cancel">Cancel</button>
+                <button class="btn-danger" id="emergency-confirm">Activate Protocol</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
