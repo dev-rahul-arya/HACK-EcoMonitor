@@ -27,7 +27,21 @@ class EcoMonitor {
     async initialize() {
         try {
             // Initialize Supabase
-            await this.supabase.initialize();
+            const supabaseInit = await this.supabase.initialize();
+            
+            // Check Supabase connection
+            if (supabaseInit) {
+                const connectionCheck = await this.supabase.checkConnection();
+                if (connectionCheck.connected) {
+                    console.log('✅ Supabase connected successfully');
+                    this.showToast('success', 'Database Connected', 'Supabase connection established');
+                } else {
+                    console.warn('⚠️ Supabase connection issue:', connectionCheck.error);
+                    this.showToast('warning', 'Database Warning', 'Using local storage fallback');
+                }
+            } else {
+                console.log('📦 Using local storage (Supabase not configured)');
+            }
             
             // Load user settings
             await this.loadSettings();
@@ -50,11 +64,12 @@ class EcoMonitor {
             // Hide loading overlay
             this.hideLoadingOverlay();
             
-            // Get initial AI analysis
-            this.refreshAIAnalysis();
+            // Get initial AI analysis with status indicator
+            console.log('🤖 Initiating AI analysis...');
+            await this.refreshAIAnalysis();
             
             this.isInitialized = true;
-            console.log('EcoMonitor initialized successfully');
+            console.log('✅ EcoMonitor initialized successfully');
         } catch (error) {
             console.error('Initialization error:', error);
             this.showToast('error', 'Initialization Error', 'Failed to initialize. Some features may not work.');
@@ -75,6 +90,19 @@ class EcoMonitor {
                 this.switchView(link.dataset.view);
             });
         });
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.searchLocation(searchInput.value.trim());
+                }
+            });
+            searchInput.addEventListener('input', (e) => {
+                this.handleSearchSuggestions(e.target.value.trim());
+            });
+        }
 
         // Menu toggle (mobile)
         document.getElementById('menu-toggle')?.addEventListener('click', () => {
@@ -1233,6 +1261,173 @@ class EcoMonitor {
         
         // Show feedback
         this.showToast('info', 'Time Range Updated', `Showing data for the last ${range.toUpperCase()}`);
+    }
+
+    // Location search functionality
+    async searchLocation(query) {
+        if (!query) {
+            this.showToast('warning', 'Search', 'Please enter a location to search');
+            return;
+        }
+
+        this.showToast('info', 'Searching...', `Looking up "${query}"`);
+
+        try {
+            // Fetch weather data from OpenMeteo API (free, no API key required)
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1`;
+            const geoResponse = await fetch(geoUrl);
+            const geoData = await geoResponse.json();
+
+            if (!geoData.results || geoData.results.length === 0) {
+                this.showToast('error', 'Not Found', `Location "${query}" not found. Try a different search.`);
+                return;
+            }
+
+            const location = geoData.results[0];
+            const lat = location.latitude;
+            const lon = location.longitude;
+            const locationName = `${location.name}, ${location.country}`;
+
+            // Fetch current weather
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,pressure_msl,uv_index&timezone=auto`;
+            const weatherResponse = await fetch(weatherUrl);
+            const weatherData = await weatherResponse.json();
+
+            if (weatherData.current) {
+                this.updateSearchResults(locationName, weatherData.current, lat, lon);
+                this.showToast('success', 'Location Found', `Showing data for ${locationName}`);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            this.showToast('error', 'Search Error', 'Failed to fetch location data. Please try again.');
+        }
+    }
+
+    updateSearchResults(locationName, weather, lat, lon) {
+        // Update weather location display
+        const weatherLocation = document.getElementById('weather-location');
+        if (weatherLocation) {
+            weatherLocation.textContent = locationName;
+        }
+
+        // Update weather values
+        document.getElementById('weather-temp-value').textContent = Math.round(weather.temperature_2m);
+        document.getElementById('weather-humidity').textContent = `${weather.relative_humidity_2m}%`;
+        document.getElementById('weather-wind').textContent = `${Math.round(weather.wind_speed_10m)} km/h`;
+        document.getElementById('weather-pressure').textContent = `${Math.round(weather.pressure_msl)} hPa`;
+        document.getElementById('weather-uv').textContent = Math.round(weather.uv_index) || 0;
+        document.getElementById('weather-condition').textContent = this.getWeatherConditionFromCode(weather.weather_code);
+
+        // Show modal with detailed info
+        this.showLocationModal(locationName, weather, lat, lon);
+    }
+
+    getWeatherConditionFromCode(code) {
+        const conditions = {
+            0: 'Clear sky',
+            1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+            45: 'Fog', 48: 'Depositing rime fog',
+            51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
+            61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
+            71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow',
+            77: 'Snow grains',
+            80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',
+            85: 'Slight snow showers', 86: 'Heavy snow showers',
+            95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail'
+        };
+        return conditions[code] || 'Unknown';
+    }
+
+    showLocationModal(locationName, weather, lat, lon) {
+        document.getElementById('modal-title').textContent = `Weather: ${locationName}`;
+        document.getElementById('modal-body').innerHTML = `
+            <div class="location-weather-details">
+                <div class="weather-info-grid">
+                    <div class="weather-info-item">
+                        <strong>🌡️ Temperature</strong>
+                        <span>${weather.temperature_2m}°C</span>
+                    </div>
+                    <div class="weather-info-item">
+                        <strong>🌡️ Feels Like</strong>
+                        <span>${weather.apparent_temperature}°C</span>
+                    </div>
+                    <div class="weather-info-item">
+                        <strong>💧 Humidity</strong>
+                        <span>${weather.relative_humidity_2m}%</span>
+                    </div>
+                    <div class="weather-info-item">
+                        <strong>💨 Wind Speed</strong>
+                        <span>${weather.wind_speed_10m} km/h</span>
+                    </div>
+                    <div class="weather-info-item">
+                        <strong>📊 Pressure</strong>
+                        <span>${Math.round(weather.pressure_msl)} hPa</span>
+                    </div>
+                    <div class="weather-info-item">
+                        <strong>☀️ UV Index</strong>
+                        <span>${weather.uv_index || 'N/A'}</span>
+                    </div>
+                    <div class="weather-info-item full-width">
+                        <strong>🌤️ Condition</strong>
+                        <span>${this.getWeatherConditionFromCode(weather.weather_code)}</span>
+                    </div>
+                    <div class="weather-info-item full-width">
+                        <strong>📍 Coordinates</strong>
+                        <span>${lat.toFixed(4)}, ${lon.toFixed(4)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Hide take action button for weather searches
+        const actionBtn = document.getElementById('modal-action');
+        if (actionBtn) actionBtn.style.display = 'none';
+        
+        this.openModal('alert-modal');
+    }
+
+    handleSearchSuggestions(query) {
+        // Debounced search suggestions (future enhancement)
+        // For now, we just validate the input
+        if (query.length > 0 && query.length < 2) {
+            // Too short for suggestions
+            return;
+        }
+    }
+
+    // Test Supabase connection
+    async testSupabaseConnection() {
+        const result = await this.supabase.checkConnection();
+        if (result.connected) {
+            this.showToast('success', 'Supabase Connected', 'Database connection is healthy');
+        } else {
+            this.showToast('error', 'Supabase Error', result.error?.message || 'Connection failed');
+        }
+        return result;
+    }
+
+    // Test Gemini AI
+    async testGeminiAI() {
+        this.showToast('info', 'Testing AI', 'Sending test request to Gemini...');
+        try {
+            const analysis = await this.ai.analyzeEnvironmentalData(
+                this.currentData || this.sensors.generateSensorData(),
+                this.sensors.getHistoricalData()
+            );
+            
+            if (analysis && analysis.summary) {
+                console.log('✅ Gemini AI Response:', analysis);
+                this.showToast('success', 'AI Working', 'Gemini API responded successfully');
+                return analysis;
+            } else {
+                this.showToast('warning', 'AI Response', 'Received response but format unexpected');
+                return analysis;
+            }
+        } catch (error) {
+            console.error('❌ Gemini AI Error:', error);
+            this.showToast('error', 'AI Error', error.message);
+            return null;
+        }
     }
 }
 

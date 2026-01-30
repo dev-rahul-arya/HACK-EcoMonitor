@@ -15,16 +15,19 @@ class GeminiAI {
 
     async analyzeEnvironmentalData(sensorData, historicalData) {
         if (!this.isConfigured) {
+            console.log('⚠️ Gemini API not configured, using offline analysis');
             return this.getOfflineAnalysis(sensorData);
         }
 
         const prompt = this.buildAnalysisPrompt(sensorData, historicalData);
         
         try {
+            console.log('🤖 Sending request to Gemini API...');
             const response = await this.callGeminiAPI(prompt);
+            console.log('✅ Gemini API response received');
             return this.parseAIResponse(response);
         } catch (error) {
-            console.error('Gemini API error:', error);
+            console.error('❌ Gemini API error:', error);
             return this.getOfflineAnalysis(sensorData);
         }
     }
@@ -66,6 +69,8 @@ Format your response clearly with these section headers.`;
     async callGeminiAPI(prompt) {
         const url = `${this.apiUrl}/${this.model}:generateContent?key=${this.apiKey}`;
         
+        console.log('📡 Calling Gemini API with model:', this.model);
+        
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -97,11 +102,15 @@ Format your response clearly with these section headers.`;
         });
 
         if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Gemini API error response:', errorText);
+            throw new Error(`API request failed: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log('📝 Gemini response length:', textContent.length, 'chars');
+        return textContent;
     }
 
     parseAIResponse(response) {

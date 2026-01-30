@@ -17,18 +17,19 @@ class SupabaseService {
 
     async initialize() {
         if (!this.isConfigured) {
-            console.log('Supabase not configured, using local storage fallback');
+            console.log('📦 Supabase not configured, using local storage fallback');
             return false;
         }
 
         try {
             // Dynamic import of Supabase client
+            console.log('🔌 Initializing Supabase client...');
             const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
             this.client = createClient(this.url, this.anonKey);
-            console.log('Supabase client initialized');
+            console.log('✅ Supabase client initialized');
             return true;
         } catch (error) {
-            console.error('Failed to initialize Supabase:', error);
+            console.error('❌ Failed to initialize Supabase:', error);
             return false;
         }
     }
@@ -395,17 +396,33 @@ class SupabaseService {
     // Health check
     async checkConnection() {
         if (!this.client) {
+            console.log('❌ Supabase client not initialized');
             return { connected: false, reason: 'not_configured' };
         }
 
         try {
-            const { error } = await this.client
+            console.log('🔍 Checking Supabase connection...');
+            
+            // Try a simple query - this will work even if table is empty
+            const { data, error } = await this.client
                 .from('sensor_readings')
-                .select('count')
+                .select('*')
                 .limit(1);
 
-            return { connected: !error, error };
+            if (error) {
+                // Check if it's just a "table doesn't exist" error (which means connection works)
+                if (error.code === '42P01') {
+                    console.log('⚠️ Tables not created yet, but connection is working');
+                    return { connected: true, tablesExist: false, message: 'Connection OK, tables need creation' };
+                }
+                console.error('❌ Supabase query error:', error);
+                return { connected: false, error };
+            }
+
+            console.log('✅ Supabase connection verified, records found:', data?.length || 0);
+            return { connected: true, tablesExist: true, recordCount: data?.length || 0 };
         } catch (error) {
+            console.error('❌ Supabase connection error:', error);
             return { connected: false, error };
         }
     }

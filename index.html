@@ -9,6 +9,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Auth Check: Redirect to home.html if not logged in -->
+    <!-- Uncomment this script when authentication is fully set up -->
+    <!--
+    <script type="module">
+        import CONFIG from './js/config.js';
+        
+        async function checkAuth() {
+            try {
+                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+                const supabase = createClient(CONFIG.SUPABASE.URL, CONFIG.SUPABASE.ANON_KEY);
+                
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    // No active session, redirect to landing page
+                    window.location.href = 'home.html';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // On error, allow access (fail open for development)
+            }
+        }
+        
+        checkAuth();
+    </script>
+    -->
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -124,7 +151,7 @@
                             <circle cx="11" cy="11" r="8"/>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
-                        <input type="text" placeholder="Search locations, sensors..." id="search-input">
+                        <input type="text" placeholder="Search city for weather (press Enter)" id="search-input">
                     </div>
                     <div class="header-actions">
                         <button class="action-btn" id="refresh-btn" title="Refresh Data">
@@ -669,6 +696,19 @@
                                 <label for="instant-alerts">Enable instant email alerts</label>
                             </div>
                             <button class="btn-primary" id="save-alert-settings">Save Settings</button>
+                        </div>
+
+                        <h3 style="margin-top: 2rem;">Integration Tests</h3>
+                        <div class="settings-form">
+                            <div class="test-buttons">
+                                <button class="btn-secondary" id="test-supabase" onclick="app.testSupabaseConnection()">
+                                    🗄️ Test Supabase Connection
+                                </button>
+                                <button class="btn-secondary" id="test-gemini" onclick="app.testGeminiAI()">
+                                    🤖 Test Gemini AI
+                                </button>
+                            </div>
+                            <p class="test-note">Open browser console (F12) to see detailed logs</p>
                         </div>
                     </div>
                 </div>

@@ -11,7 +11,7 @@ const CONFIG = {
     // Gemini AI API Configuration
     GEMINI: {
         API_KEY: 'your-gemini-api-key-here',
-        MODEL: 'gemini-1.5-flash',
+        MODEL: 'gemini-2.5-flash',
         API_URL: 'https://generativelanguage.googleapis.com/v1beta/models'
     },
 

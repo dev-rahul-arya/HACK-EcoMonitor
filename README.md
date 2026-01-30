@@ -14,6 +14,7 @@ Real-time environmental monitoring dashboard with AI-powered analysis for climat
 - **AI Analysis**: Gemini-powered anomaly detection and recommendations
 - **Automated Alerts**: Email notifications via n8n webhooks
 - **Multi-location Support**: Downtown, Industrial, Residential, Waterfront zones
+- **User Authentication**: Secure login/signup with Supabase Auth (Email, Google, GitHub)
 
 ### Dashboard Views
 - 📊 **Dashboard**: Overview with live stats, charts, and sensor network
@@ -23,31 +24,38 @@ Real-time environmental monitoring dashboard with AI-powered analysis for climat
 - 🔔 **Alerts**: Alert history with filtering and export
 - 🤖 **AI Insights**: Comprehensive environmental intelligence reports
 
+### Pages
+- 🏠 **Landing Page** (`home.html`): Marketing page with features overview
+- 🔐 **Login** (`login.html`): User authentication with social login
+- 📝 **Sign Up** (`signup.html`): User registration with email verification
+- 📊 **Dashboard** (`index.html`): Main monitoring dashboard
+
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 1. **Google Gemini API Key**: [Get it here](https://aistudio.google.com/app/apikey)
-2. **Supabase Project** (optional): [Create free project](https://supabase.com)
+2. **Supabase Project**: [Create free project](https://supabase.com)
 3. **n8n Instance** (optional): For email alerts
 
 ### Setup
 1. Copy `js/config.example.js` to `js/config.js`
 2. Add your API credentials to `config.js`
-3. Start a local server (see below)
+3. Set up Supabase database (see Database Setup section)
+4. Start a local server (see below)
 
 ### Running Locally
 
 **Option 1: VS Code Live Server (Recommended)**
 ```bash
-# Install Live Server extension, then right-click index.html → Open with Live Server
+# Install Live Server extension, then right-click home.html → Open with Live Server
 ```
 
 **Option 2: Python HTTP Server**
 ```bash
 python3 -m http.server 8080
-# Open http://localhost:8080
+# Open http://localhost:8080/home.html
 ```
 
 **Option 3: Node.js**
@@ -98,57 +106,62 @@ npx serve .
 
 ---
 
-## 🗄️ Supabase Schema
+## 🗄️ Database Setup (Supabase)
 
-Create these tables in your Supabase project:
+### Step 1: Create Supabase Project
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Wait for the project to be provisioned (~2 minutes)
+3. Go to **Project Settings** → **API** and copy:
+   - **Project URL** (e.g., `https://xxxxx.supabase.co`)
+   - **Anon public key**
 
-```sql
--- Sensor readings table
-CREATE TABLE sensor_readings (
-    id BIGSERIAL PRIMARY KEY,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    location TEXT,
-    air_data JSONB,
-    weather_data JSONB,
-    water_data JSONB
-);
-
--- Alerts table
-CREATE TABLE alerts (
-    id BIGSERIAL PRIMARY KEY,
-    alert_id TEXT UNIQUE,
-    type TEXT,
-    severity TEXT,
-    message TEXT,
-    value NUMERIC,
-    threshold TEXT,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    read BOOLEAN DEFAULT FALSE,
-    location TEXT
-);
-
--- User settings table
-CREATE TABLE user_settings (
-    id TEXT PRIMARY KEY DEFAULT 'default',
-    alert_email TEXT,
-    aqi_threshold INTEGER DEFAULT 150,
-    temp_threshold INTEGER DEFAULT 40,
-    instant_alerts BOOLEAN DEFAULT TRUE,
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- AI reports table
-CREATE TABLE ai_reports (
-    id BIGSERIAL PRIMARY KEY,
-    generated_at TIMESTAMPTZ DEFAULT NOW(),
-    summary TEXT,
-    concerns JSONB,
-    recommendations JSONB,
-    prediction TEXT,
-    sensor_snapshot JSONB,
-    data_quality JSONB
-);
+### Step 2: Add Credentials to Config
+Update `js/config.js`:
+```javascript
+SUPABASE: {
+    URL: 'https://your-project-id.supabase.co',
+    ANON_KEY: 'your-anon-key-here'
+}
 ```
+
+### Step 3: Run SQL Schema
+1. Go to **SQL Editor** in your Supabase dashboard
+2. Open [sql/schema.sql](sql/schema.sql)
+3. Copy the entire contents and paste into the SQL Editor
+4. Click **Run** to execute all statements
+
+The schema creates the following tables:
+| Table | Purpose |
+|-------|---------|
+| `profiles` | User profile data (auto-created on signup) |
+| `sensor_readings` | Environmental sensor data |
+| `alerts` | Alert notifications and status |
+| `ai_reports` | AI-generated analysis reports |
+| `user_settings` | User preferences and thresholds |
+| `saved_locations` | User's favorite locations |
+| `activity_log` | Audit trail of user actions |
+
+### Step 4: Configure Authentication
+
+#### Enable Email Auth
+1. Go to **Authentication** → **Providers**
+2. Email provider should be enabled by default
+3. Configure **Site URL** to your app URL (e.g., `http://localhost:8080`)
+4. Add redirect URLs:
+   - `http://localhost:8080/index.html`
+   - `http://localhost:8080/login.html`
+
+#### Enable Google OAuth (Optional)
+1. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com)
+2. In Supabase: **Authentication** → **Providers** → **Google**
+3. Enable and add your Client ID and Secret
+4. Add authorized redirect URI from Supabase to Google Console
+
+#### Enable GitHub OAuth (Optional)
+1. Create OAuth App in [GitHub Developer Settings](https://github.com/settings/developers)
+2. In Supabase: **Authentication** → **Providers** → **GitHub**
+3. Enable and add your Client ID and Secret
+4. Set callback URL to the one provided by Supabase
 
 ---
 
@@ -166,9 +179,14 @@ CREATE TABLE ai_reports (
 
 ```
 EcoMonitor/
-├── index.html              # Main HTML
+├── home.html               # Landing page
+├── login.html              # Login page
+├── signup.html             # Registration page
+├── index.html              # Main dashboard
 ├── css/
-│   └── style.css           # All styles
+│   ├── style.css           # Dashboard styles
+│   ├── home.css            # Landing page styles
+│   └── auth.css            # Login/signup styles
 ├── js/
 │   ├── app.js              # Main controller
 │   ├── config.js           # Credentials (gitignored)
@@ -178,8 +196,23 @@ EcoMonitor/
 │       ├── gemini.js       # AI analysis
 │       ├── alerts.js       # n8n integration
 │       └── supabase.js     # Database
+├── sql/
+│   └── schema.sql          # Database schema
 └── README.md
 ```
+
+---
+
+## 🔐 Authentication Flow
+
+1. **New users**: Visit `home.html` → Click "Get Started" → `signup.html`
+2. **Existing users**: `login.html` → Enter credentials → Redirected to `index.html`
+3. **Social login**: Click Google/GitHub → OAuth flow → Redirected to `index.html`
+
+### Session Management
+- Sessions are managed by Supabase Auth
+- Tokens are stored in localStorage
+- Auto-refresh of tokens is handled by Supabase client
 
 ---
 
