@@ -129,6 +129,7 @@ class EcoMonitor {
         // Modal controls
         document.getElementById('modal-close')?.addEventListener('click', () => this.closeModal('alert-modal'));
         document.getElementById('modal-dismiss')?.addEventListener('click', () => this.closeModal('alert-modal'));
+        document.getElementById('modal-action')?.addEventListener('click', () => this.takeAlertAction());
         document.getElementById('emergency-cancel')?.addEventListener('click', () => this.closeModal('emergency-modal'));
         document.getElementById('emergency-confirm')?.addEventListener('click', () => this.activateEmergencyProtocol());
 
@@ -399,12 +400,32 @@ class EcoMonitor {
         this.updateStatCard('humidity', data.weather.humidity, this.sensors.calculateTrend(historical.humidity));
         this.updateStatCard('ph', data.water.ph, this.sensors.calculateTrend(historical.waterPh));
 
-        // Update indicators
+        // Update indicators - clear previous classes first
+        ['stat-aqi-indicator', 'stat-temp-indicator', 'stat-humidity-indicator', 'stat-ph-indicator'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('good', 'moderate', 'poor');
+        });
+        
+        // AQI indicator
         const aqiStatus = this.sensors.getAQIStatus(data.air.aqi);
         document.getElementById('stat-aqi-indicator')?.classList.add(aqiStatus.color);
         
+        // Temperature indicator (comfortable: 18-26°C good, 15-18 or 26-32 moderate, else poor)
+        const temp = parseFloat(data.weather.temperature);
+        let tempColor = 'good';
+        if (temp < 15 || temp > 32) tempColor = 'poor';
+        else if (temp < 18 || temp > 26) tempColor = 'moderate';
+        document.getElementById('stat-temp-indicator')?.classList.add(tempColor);
+        
+        // Humidity indicator (40-60% good, 30-40 or 60-70 moderate, else poor)
+        const humidity = parseFloat(data.weather.humidity);
+        let humidityColor = 'good';
+        if (humidity < 30 || humidity > 70) humidityColor = 'poor';
+        else if (humidity < 40 || humidity > 60) humidityColor = 'moderate';
+        document.getElementById('stat-humidity-indicator')?.classList.add(humidityColor);
+        
+        // Water pH indicator
         const phStatus = this.sensors.getWaterQualityStatus(parseFloat(data.water.ph));
-        document.getElementById('stat-ph-indicator')?.classList.add(phStatus.color);
 
         // Update air quality view
         document.getElementById('detail-aqi').textContent = data.air.aqi;
@@ -948,6 +969,40 @@ class EcoMonitor {
         this.openModal('emergency-modal');
     }
 
+    // Take action on current alert
+    async takeAlertAction() {
+        const title = document.getElementById('modal-title')?.textContent;
+        const body = document.getElementById('modal-body');
+        
+        // Show loading state
+        const actionBtn = document.getElementById('modal-action');
+        const originalText = actionBtn?.textContent;
+        if (actionBtn) {
+            actionBtn.textContent = 'Processing...';
+            actionBtn.disabled = true;
+        }
+        
+        try {
+            // Trigger n8n webhook for automated response
+            await this.alerts.sendAlertAction({
+                title: title,
+                timestamp: new Date().toISOString(),
+                action: 'user_initiated_response'
+            });
+            
+            this.closeModal('alert-modal');
+            this.showToast('success', 'Action Taken', 'Response protocol has been initiated and notifications sent.');
+        } catch (error) {
+            console.error('Action error:', error);
+            this.showToast('error', 'Action Failed', 'Unable to complete the action. Please try again.');
+        } finally {
+            if (actionBtn) {
+                actionBtn.textContent = originalText;
+                actionBtn.disabled = false;
+            }
+        }
+    }
+
     async activateEmergencyProtocol() {
         const message = document.getElementById('emergency-message')?.value;
         const options = {
@@ -1124,9 +1179,60 @@ class EcoMonitor {
     }
 
     updateTrendsChart(range) {
-        // In a real app, this would fetch data for the selected time range
-        console.log('Updating chart for range:', range);
-        this.updateCharts();
+        // Get historical data and filter based on selected time range
+        const historical = this.sensors.getHistoricalData();
+        
+        if (!this.charts.trends || historical.timestamps.length === 0) {
+            return;
+        }
+
+        const now = new Date();
+        let filterMinutes;
+        let labelFormat = { hour: '2-digit', minute: '2-digit' };
+        
+        switch(range) {
+            case '1h':
+                filterMinutes = 60;
+                break;
+            case '6h':
+                filterMinutes = 360;
+                break;
+            case '24h':
+                filterMinutes = 1440;
+                labelFormat = { hour: '2-digit' };
+                break;
+            case '7d':
+                filterMinutes = 10080;
+                labelFormat = { weekday: 'short', hour: '2-digit' };
+                break;
+            default:
+                filterMinutes = 60;
+        }
+        
+        const cutoffTime = new Date(now.getTime() - filterMinutes * 60 * 1000);
+        
+        // Filter data based on time range
+        const filteredIndices = historical.timestamps
+            .map((t, i) => ({ t, i }))
+            .filter(({ t }) => t >= cutoffTime)
+            .map(({ i }) => i);
+        
+        // If not enough data for the range, use all available data
+        const indices = filteredIndices.length > 0 ? filteredIndices : historical.timestamps.map((_, i) => i);
+        
+        const labels = indices.map(i => 
+            historical.timestamps[i].toLocaleTimeString('en-US', labelFormat)
+        );
+        
+        // Update chart with filtered data
+        this.charts.trends.data.labels = labels;
+        this.charts.trends.data.datasets[0].data = indices.map(i => historical.aqi[i]);
+        this.charts.trends.data.datasets[1].data = indices.map(i => historical.temperature[i]);
+        this.charts.trends.data.datasets[2].data = indices.map(i => historical.humidity[i]);
+        this.charts.trends.update('none');
+        
+        // Show feedback
+        this.showToast('info', 'Time Range Updated', `Showing data for the last ${range.toUpperCase()}`);
     }
 }
 

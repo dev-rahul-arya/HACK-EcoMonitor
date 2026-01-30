@@ -212,6 +212,42 @@ class AlertService {
         return this.sendAlert(alert);
     }
 
+    // Send user-initiated alert action via webhook
+    async sendAlertAction(actionData) {
+        if (!this.enabled) {
+            console.log('n8n alerts disabled - simulating action');
+            return { success: true, simulated: true };
+        }
+
+        const payload = {
+            timestamp: actionData.timestamp || new Date().toISOString(),
+            actionId: this.generateAlertId(),
+            type: 'user_action',
+            title: actionData.title,
+            action: actionData.action,
+            message: `User initiated response to: ${actionData.title}`,
+            metadata: {
+                source: 'EcoMonitor',
+                version: '1.0.0',
+                actionType: 'alert_response'
+            }
+        };
+
+        const response = await fetch(this.webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Action webhook request failed: ${response.status}`);
+        }
+
+        return await response.json().catch(() => ({ status: 'action_sent' }));
+    }
+
     // Retry failed alerts
     async retryFailedAlerts() {
         const failedAlerts = [...this.alertQueue];
