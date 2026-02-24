@@ -47,20 +47,8 @@ Real-time environmental monitoring dashboard with AI-powered analysis for climat
 
 ### Running Locally
 
-**Option 1: VS Code Live Server (Recommended)**
 ```bash
-# Install Live Server extension, then right-click home.html → Open with Live Server
-```
-
-**Option 2: Python HTTP Server**
-```bash
-python3 -m http.server 8080
-# Open http://localhost:8080/home.html
-```
-
-**Option 3: Node.js**
-```bash
-npx serve .
+npm run dev
 ```
 
 ---
@@ -218,4 +206,4 @@ EcoMonitor/
 
 ## 📄 License
 
-MIT License - Feel free to use for hackathons and projects!
+MIT License
