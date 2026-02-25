@@ -1,40 +1,39 @@
 /**
- * EcoMonitor Configuration Template
+ * EcoMonitor Configuration
  * 
- * INSTRUCTIONS:
- * 1. Copy this file and rename to config.js
- * 2. Fill in your actual API keys and credentials
- * 3. NEVER commit config.js to version control
+ * Reads from environment variables (Vite exposes VITE_* vars via import.meta.env).
+ * For local development, create a .env file in the project root.
+ * For Vercel deployment, add these in Project Settings → Environment Variables.
  */
 
 const CONFIG = {
     // Gemini AI API Configuration
     GEMINI: {
-        API_KEY: 'your-gemini-api-key-here',
-        MODEL: 'gemini-2.5-flash',
-        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models'
+        API_KEY: import.meta.env.VITE_GEMINI_API_KEY || '',
+        MODEL: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash',
+        API_URL: import.meta.env.VITE_GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models'
     },
 
     // Supabase Configuration
     SUPABASE: {
-        URL: 'https://your-project-id.supabase.co',
-        ANON_KEY: 'your-supabase-anon-key-here'
+        URL: import.meta.env.VITE_SUPABASE_URL || '',
+        ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     },
 
     // n8n Webhook Configuration for Email Alerts
     N8N: {
-        WEBHOOK_URL: 'https://your-n8n-instance.com/webhook/eco-monitor-alerts',
-        ENABLED: true
+        WEBHOOK_URL: import.meta.env.VITE_N8N_WEBHOOK_URL || '',
+        ENABLED: import.meta.env.VITE_N8N_ENABLED !== 'false'
     },
 
     // Application Settings
     APP: {
-        REFRESH_INTERVAL: 30000,        // Data refresh interval in ms
-        ALERT_THRESHOLD_AQI: 150,       // AQI threshold for alerts
-        ALERT_THRESHOLD_TEMP: 40,       // Temperature threshold (°C)
-        ALERT_THRESHOLD_WATER_PH: 6.5,  // Water pH minimum
-        ANOMALY_SENSITIVITY: 0.8,       // AI anomaly detection sensitivity (0-1)
-        MAX_HISTORICAL_POINTS: 50       // Max data points for charts
+        REFRESH_INTERVAL: parseInt(import.meta.env.VITE_REFRESH_INTERVAL || '30000', 10),
+        ALERT_THRESHOLD_AQI: parseInt(import.meta.env.VITE_ALERT_THRESHOLD_AQI || '150', 10),
+        ALERT_THRESHOLD_TEMP: parseInt(import.meta.env.VITE_ALERT_THRESHOLD_TEMP || '40', 10),
+        ALERT_THRESHOLD_WATER_PH: parseFloat(import.meta.env.VITE_ALERT_THRESHOLD_WATER_PH || '6.5'),
+        ANOMALY_SENSITIVITY: parseFloat(import.meta.env.VITE_ANOMALY_SENSITIVITY || '0.8'),
+        MAX_HISTORICAL_POINTS: parseInt(import.meta.env.VITE_MAX_HISTORICAL_POINTS || '50', 10)
     }
 };
 

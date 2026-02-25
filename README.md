@@ -35,21 +35,66 @@ Real-time environmental monitoring dashboard with AI-powered analysis for climat
 ## 🚀 Quick Start
 
 ### Prerequisites
-1. **Google Gemini API Key**: [Get it here](https://aistudio.google.com/app/apikey)
-2. **Supabase Project**: [Create free project](https://supabase.com)
-3. **n8n Instance** (optional): For email alerts
+1. **Node.js** ≥ 18
+2. **Google Gemini API Key**: [Get it here](https://aistudio.google.com/app/apikey)
+3. **Supabase Project**: [Create free project](https://supabase.com)
+4. **n8n Instance** (optional): For email alerts
 
 ### Setup
-1. Copy `js/config.example.js` to `js/config.js`
-2. Add your API credentials to `config.js`
-3. Set up Supabase database (see Database Setup section)
-4. Start a local server (see below)
-
-### Running Locally
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/your-username/HACK-EcoMonitor.git
+cd HACK-EcoMonitor
+
+# 2. Install dependencies
+npm install
+
+# 3. Create your environment file
+cp .env.example .env
+
+# 4. Open .env and fill in your API keys (see Environment Variables section below)
+
+# 5. Start the dev server
 npm run dev
 ```
+
+---
+
+## 🔑 Environment Variables
+
+The app reads configuration from environment variables prefixed with `VITE_`.  
+For **local development**, create a `.env` file in the project root.  
+For **Vercel / production**, add them in your hosting dashboard.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_GEMINI_API_KEY` | ✅ | Google Gemini API key |
+| `VITE_GEMINI_MODEL` | | Model name (default: `gemini-2.5-flash`) |
+| `VITE_SUPABASE_URL` | ✅ | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | ✅ | Supabase anon/public key |
+| `VITE_N8N_WEBHOOK_URL` | | n8n webhook URL for email alerts |
+| `VITE_N8N_ENABLED` | | Enable n8n alerts (`true`/`false`, default: `true`) |
+| `VITE_REFRESH_INTERVAL` | | Data refresh interval in ms (default: `30000`) |
+| `VITE_ALERT_THRESHOLD_AQI` | | AQI alert threshold (default: `150`) |
+| `VITE_ALERT_THRESHOLD_TEMP` | | Temperature alert threshold °C (default: `40`) |
+| `VITE_ALERT_THRESHOLD_WATER_PH` | | Minimum safe water pH (default: `6.5`) |
+| `VITE_ANOMALY_SENSITIVITY` | | AI anomaly sensitivity 0-1 (default: `0.8`) |
+| `VITE_MAX_HISTORICAL_POINTS` | | Max chart data points (default: `50`) |
+
+> **Note:** `.env` is git-ignored. The template is in [.env.example](.env.example).
+
+---
+
+## ▲ Deploy to Vercel
+
+1. Push your repo to GitHub.
+2. Go to [vercel.com/new](https://vercel.com/new) and import your repository.
+3. In **Settings → Environment Variables**, add the required `VITE_*` variables listed above.
+4. Set the **Framework Preset** to **Vite**.
+5. Deploy — Vercel will run `npm run build` automatically.
+
+> Every push to `main` will trigger a new deployment. Preview deployments are created for PRs.
 
 ---
 
@@ -86,7 +131,7 @@ npm run dev
 - [ ] Add sparkline mini-charts in stat cards
 
 ### 🔒 Security & Production
-- [ ] Environment variables for deployment
+- [x] Environment variables for deployment
 - [ ] Rate limiting for API calls
 - [ ] Input validation/sanitization
 - [ ] HTTPS enforcement
@@ -103,13 +148,11 @@ npm run dev
    - **Project URL** (e.g., `https://xxxxx.supabase.co`)
    - **Anon public key**
 
-### Step 2: Add Credentials to Config
-Update `js/config.js`:
-```javascript
-SUPABASE: {
-    URL: 'https://your-project-id.supabase.co',
-    ANON_KEY: 'your-anon-key-here'
-}
+### Step 2: Add Credentials to `.env`
+Add these to your `.env` file (or Vercel env vars):
+```
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 ### Step 3: Run SQL Schema
@@ -159,7 +202,7 @@ The schema creates the following tables:
 2. Add **Webhook** trigger node
 3. Add **Send Email** node (configure SMTP)
 4. Connect and activate workflow
-5. Copy webhook URL to `config.js`
+5. Set `VITE_N8N_WEBHOOK_URL` in your `.env` or Vercel env vars
 
 ---
 
@@ -167,25 +210,44 @@ The schema creates the following tables:
 
 ```
 EcoMonitor/
-├── home.html               # Landing page
-├── login.html              # Login page
-├── signup.html             # Registration page
-├── index.html              # Main dashboard
-├── css/
-│   ├── style.css           # Dashboard styles
-│   ├── home.css            # Landing page styles
-│   └── auth.css            # Login/signup styles
-├── js/
-│   ├── app.js              # Main controller
-│   ├── config.js           # Credentials (gitignored)
-│   ├── config.example.js   # Template
-│   └── modules/
-│       ├── sensors.js      # IoT simulation
-│       ├── gemini.js       # AI analysis
-│       ├── alerts.js       # n8n integration
-│       └── supabase.js     # Database
+├── index.html              # HTML entry point
+├── .env.example            # Environment variables template
+├── vite.config.js          # Vite configuration
+├── public/                 # Static assets
 ├── sql/
-│   └── schema.sql          # Database schema
+│   └── schema.sql          # Supabase database schema
+├── src/
+│   ├── main.jsx            # React entry point
+│   ├── App.jsx             # Root component & routing
+│   ├── components/         # Shared UI components
+│   │   ├── Sidebar.jsx
+│   │   ├── TopHeader.jsx
+│   │   └── ToastContainer.jsx
+│   ├── context/            # React Context providers
+│   │   ├── AppContext.jsx
+│   │   └── AuthContext.jsx
+│   ├── layouts/
+│   │   └── DashboardLayout.jsx
+│   ├── modules/            # Service classes
+│   │   ├── config.js       # Reads VITE_* env vars
+│   │   ├── sensors.js      # IoT simulation
+│   │   ├── gemini.js       # Gemini AI integration
+│   │   ├── alerts.js       # n8n webhook alerts
+│   │   └── supabase.js     # Supabase persistence
+│   ├── pages/              # Route pages
+│   │   ├── HomePage.jsx
+│   │   ├── LoginPage.jsx
+│   │   ├── SignupPage.jsx
+│   │   ├── DashboardView.jsx
+│   │   ├── AirQualityView.jsx
+│   │   ├── WaterQualityView.jsx
+│   │   ├── WeatherView.jsx
+│   │   ├── AlertsView.jsx
+│   │   └── AIInsightsView.jsx
+│   └── styles/             # CSS stylesheets
+│       ├── style.css
+│       ├── home.css
+│       └── auth.css
 └── README.md
 ```
 

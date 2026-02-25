@@ -1,7 +1,4 @@
-# Credentials - NEVER commit this file
-js/config.js
-
-# Environment files
+# Environment files (contain secrets)
 .env
 .env.local
 .env.*.local
