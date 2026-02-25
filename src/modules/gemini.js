@@ -60,14 +60,15 @@ Please provide:
 Format your response clearly with these section headers.`;
     }
 
-    async callGeminiAPI(prompt) {
+    async callGeminiAPI(prompt, options = {}) {
         const url = `${this.apiUrl}/${this.model}:generateContent?key=${this.apiKey}`;
+        const maxTokens = options.maxOutputTokens || 2048;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, topK: 40, topP: 0.95, maxOutputTokens: 1024 },
+                generationConfig: { temperature: options.temperature ?? 0.7, topK: 40, topP: 0.95, maxOutputTokens: maxTokens },
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
@@ -80,6 +81,20 @@ Format your response clearly with these section headers.`;
         }
         const data = await response.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    /** Call Gemini and parse the result as JSON, with robust cleanup */
+    async callGeminiJSON(prompt, options = {}) {
+        const raw = await this.callGeminiAPI(prompt, { maxOutputTokens: options.maxOutputTokens || 4096, temperature: options.temperature ?? 0.4 });
+        // Strip markdown fences, leading/trailing whitespace
+        let cleaned = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+        // Find the first { and last } to extract JSON object
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+        return JSON.parse(cleaned);
     }
 
     parseAIResponse(response) {

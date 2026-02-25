@@ -11,6 +11,7 @@ import WaterQualityView from './pages/WaterQualityView';
 import WeatherView from './pages/WeatherView';
 import AlertsView from './pages/AlertsView';
 import AIInsightsView from './pages/AIInsightsView';
+import ClimateTrendsView from './pages/ClimateTrendsView';
 
 export default function App() {
     return (
@@ -34,6 +35,7 @@ export default function App() {
                         <Route path="weather" element={<WeatherView />} />
                         <Route path="alerts" element={<AlertsView />} />
                         <Route path="ai-insights" element={<AIInsightsView />} />
+                        <Route path="climate-trends" element={<ClimateTrendsView />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

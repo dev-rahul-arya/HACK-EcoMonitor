@@ -11,6 +11,7 @@ const viewMeta = {
     '/dashboard/weather': { title: 'Weather', subtitle: 'Weather conditions & forecast' },
     '/dashboard/alerts': { title: 'Alerts', subtitle: 'Alert management center' },
     '/dashboard/ai-insights': { title: 'AI Insights', subtitle: 'AI-powered environmental analysis' },
+    '/dashboard/climate-trends': { title: 'Climate Trends', subtitle: 'Historical climate analysis & risk assessment' },
 };
 
 export default function DashboardLayout() {
