@@ -6,30 +6,14 @@ export default function AirQualityView() {
     const { currentData, historicalData, sensorsRef, aiRef } = useApp();
     const [recommendations, setRecommendations] = useState(null);
     const [recsLoading, setRecsLoading] = useState(false);
+    const [recsCooldown, setRecsCooldown] = useState(false);
 
     const fetchRecommendations = useCallback(async () => {
-        if (!currentData) return;
+        if (!currentData || recommendations) return; // skip if already fetched
         setRecsLoading(true);
         try {
-            const prompt = `Based on the following air quality data, provide 4-6 specific health recommendations for residents. Be concise and actionable.
-
-Air Quality Index (AQI): ${currentData.air.aqi}
-PM2.5: ${currentData.air.pm25} μg/m³
-PM10: ${currentData.air.pm10} μg/m³
-Ozone (O3): ${currentData.air.o3} ppb
-NO2: ${currentData.air.no2} ppb
-SO2: ${currentData.air.so2} ppb
-CO: ${currentData.air.co} ppm
-
-Return ONLY a JSON array of objects with "icon" (one emoji) and "text" (one sentence recommendation). Example:
-[{"icon":"🏃","text":"Safe for outdoor exercise."}]`;
-            const result = await aiRef.current.callGeminiAPI(prompt);
-            const jsonMatch = result.match(/\[.*\]/s);
-            if (jsonMatch) {
-                setRecommendations(JSON.parse(jsonMatch[0]));
-            } else {
-                throw new Error('Could not parse recommendations');
-            }
+            const result = await aiRef.current.airQualityRecommendations(currentData.air);
+            setRecommendations(result.recommendations || result);
         } catch {
             // Fallback recommendations based on AQI
             const aqi = currentData.air.aqi;
@@ -44,8 +28,10 @@ Return ONLY a JSON array of objects with "icon" (one emoji) and "text" (one sent
             setRecommendations(fallback);
         } finally {
             setRecsLoading(false);
+            setRecsCooldown(true);
+            setTimeout(() => setRecsCooldown(false), 30_000);
         }
-    }, [currentData, aiRef]);
+    }, [currentData, aiRef, recommendations]);
 
     const labels = useMemo(() =>
         historicalData.timestamps.map(t => t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })),
@@ -115,13 +101,13 @@ Return ONLY a JSON array of objects with "icon" (one emoji) and "text" (one sent
                         <button
                             className="ai-recs-btn"
                             onClick={fetchRecommendations}
-                            disabled={recsLoading}
+                            disabled={recsLoading || recsCooldown || !!recommendations}
                         >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
                                 <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
                                 <path d="M16 14v6a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-6" />
                             </svg>
-                            <span>{recsLoading ? 'Analyzing...' : 'Get AI Recommendations'}</span>
+                            <span>{recsLoading ? 'Analyzing...' : recommendations ? 'Loaded ✓' : 'Get AI Recommendations'}</span>
                         </button>
                     </div>
                     <div className="recommendations-list">

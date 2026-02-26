@@ -165,6 +165,7 @@ export default function AIInsightsView() {
     const [activeAction, setActiveAction] = useState(null); // 'trends' | 'anomalies' | 'recommendations' | 'report'
     const [actionLoading, setActionLoading] = useState(false);
     const [actionResult, setActionResult] = useState(null);
+    const [cooldown, setCooldown] = useState(false); // 30s cooldown between AI calls
 
     const data = currentData || {};
     const aqiInfo = classifyAQI(data.air?.aqi ?? 0);
@@ -185,98 +186,29 @@ export default function AIInsightsView() {
             const score = computeEnvironmentScore(sensorData);
 
             if (type === 'trends') {
-                // Local trend computation + AI interpretation
                 const aqiTrend = (hist.aqi?.length >= 3) ? (hist.aqi[hist.aqi.length - 1] - hist.aqi[0]) : 0;
                 const tempTrend = (hist.temperature?.length >= 3) ? (hist.temperature[hist.temperature.length - 1] - hist.temperature[0]) : 0;
-                const prompt = `You are an environmental data analyst. Based on our real-time monitoring system's computed analysis:
-
-LIVE SENSOR READINGS:
-- AQI: ${sensorData.air.aqi} (${classifyAQI(sensorData.air.aqi).label})
-- PM2.5: ${sensorData.air.pm25} μg/m³ | PM10: ${sensorData.air.pm10} μg/m³
-- O3: ${sensorData.air.o3} ppb | NO2: ${sensorData.air.no2} ppb | SO2: ${sensorData.air.so2} ppb | CO: ${sensorData.air.co} ppm
-- Temperature: ${sensorData.weather.temperature}°C | Humidity: ${sensorData.weather.humidity}%
-- Wind: ${sensorData.weather.windSpeed} km/h | UV: ${sensorData.weather.uvIndex}
-- Water pH: ${sensorData.water.ph} | DO: ${sensorData.water.dissolvedOxygen} mg/L | Turbidity: ${sensorData.water.turbidity} NTU
-
-OUR COMPUTED TREND ANALYSIS:
-- AQI trend (last 20 readings): ${aqiTrend > 0 ? 'Rising' : aqiTrend < 0 ? 'Falling' : 'Stable'} (delta: ${aqiTrend.toFixed(1)})
-- Temperature trend: ${tempTrend > 0 ? 'Rising' : tempTrend < 0 ? 'Falling' : 'Stable'} (delta: ${tempTrend.toFixed(1)}°C)
-- Environment Score: ${score}/100
-- Anomalies detected by our system: ${localAnoms.length} (${localAnoms.map(a => a.metric).join(', ') || 'none'})
-
-Provide your response as JSON with this structure:
-{
-  "trendSummary": "2-3 sentence overview of the current environmental trends",
-  "airTrend": {"direction": "improving|stable|worsening", "detail": "one sentence"},
-  "tempTrend": {"direction": "rising|stable|cooling", "detail": "one sentence"},
-  "waterTrend": {"direction": "safe|caution|unsafe", "detail": "one sentence"},
-  "forecast6h": "What to expect in the next 6 hours",
-  "forecast24h": "What to expect in the next 24 hours",
-  "confidence": "high|medium|low"
-}
-Return ONLY valid JSON, no markdown.`;
-                const parsed = await aiRef.current.callGeminiJSON(prompt);
+                const parsed = await aiRef.current.analyzeTrends(sensorData, {
+                    envScore: score,
+                    aqiTrend,
+                    tempTrend,
+                    anomalyCount: localAnoms.length,
+                });
                 setActionResult({ type: 'trends', data: parsed, local: { aqiTrend, tempTrend, score, anomalyCount: localAnoms.length } });
 
             } else if (type === 'anomalies') {
-                // Local anomaly detection + AI prediction
-                const prompt = `You are an environmental anomaly prediction system. Our monitoring sensors have performed real-time anomaly detection using statistical thresholds.
-
-DETECTED ANOMALIES FROM OUR ALGORITHMS:
-${localAnoms.length > 0
-    ? localAnoms.map(a => `- ${a.metric}: current=${a.value}, baseline=${a.baseline}, deviation=${a.delta}${a.metric === 'AQI' ? '' : a.metric === 'Temperature' ? '°C' : ''}, severity=${a.severity}, message="${a.message}"`).join('\n')
-    : '- No anomalies detected by threshold analysis'}
-
-CURRENT READINGS:
-- AQI: ${sensorData.air.aqi} | PM2.5: ${sensorData.air.pm25} μg/m³
-- Temperature: ${sensorData.weather.temperature}°C | Humidity: ${sensorData.weather.humidity}%
-- Wind: ${sensorData.weather.windSpeed} km/h | Condition: ${sensorData.weather.condition}
-- Water pH: ${sensorData.water.ph} | Turbidity: ${sensorData.water.turbidity} NTU
-
-Based on the current readings and our anomaly detections, predict what could happen in the next 6-12 hours.
-
-Provide your response as JSON:
-{
-  "predictions": [
-    {"metric": "name", "risk": "high|medium|low", "prediction": "what might happen", "timeframe": "when", "probability": 0.0-1.0}
-  ],
-  "overallRisk": "high|medium|low",
-  "summary": "2 sentence summary of predicted anomalies"
-}
-Return ONLY valid JSON, no markdown. Include 3-5 predictions.`;
-                const parsed = await aiRef.current.callGeminiJSON(prompt);
+                const parsed = await aiRef.current.predictAnomalies(sensorData, hist);
                 setActionResult({ type: 'anomalies', data: parsed, local: localAnoms });
 
             } else if (type === 'recommendations') {
-                // Health-focused recommendations
-                const prompt = `You are a public health advisor for environmental conditions. Generate health & safety recommendations based on our monitoring system's live data.
-
-ENVIRONMENT SCORE (computed by our system): ${score}/100
-AQI: ${sensorData.air.aqi} (${classifyAQI(sensorData.air.aqi).label})
-PM2.5: ${sensorData.air.pm25} μg/m³ | PM10: ${sensorData.air.pm10} μg/m³
-Temperature: ${sensorData.weather.temperature}°C | Humidity: ${sensorData.weather.humidity}%
-UV Index: ${sensorData.weather.uvIndex} | Wind: ${sensorData.weather.windSpeed} km/h
-Water pH: ${sensorData.water.ph} | DO: ${sensorData.water.dissolvedOxygen} mg/L
-Condition: ${sensorData.weather.condition}
-Active anomalies: ${localAnoms.map(a => a.message).join('; ') || 'None'}
-
-Provide your response as JSON:
-{
-  "urgentActions": ["action1", "action2"],
-  "healthAdvisory": {"category": "safe|caution|warning|danger", "message": "one sentence advisory"},
-  "recommendations": [
-    {"title": "short title", "detail": "specific actionable advice", "icon": "air|water|sun|health|indoor|outdoor", "priority": "high|medium|low"}
-  ],
-  "vulnerableGroups": ["group1: specific advice", "group2: specific advice"],
-  "exerciseAdvice": "Should people exercise outdoors? Brief advice."
-}
-Return ONLY valid JSON, no markdown. Include 4-6 recommendations.`;
-                const parsed = await aiRef.current.callGeminiJSON(prompt);
+                const parsed = await aiRef.current.healthRecommendations(
+                    sensorData,
+                    hist,
+                    localAnoms.map(a => a.message),
+                );
                 setActionResult({ type: 'recommendations', data: parsed });
 
             } else if (type === 'report') {
-                // Comprehensive report
-                await refreshAIAnalysis();
                 const analysis = await aiRef.current.analyzeEnvironmentalData(sensorData, hist);
                 setActionResult({
                     type: 'report',
@@ -295,8 +227,11 @@ Return ONLY valid JSON, no markdown. Include 4-6 recommendations.`;
             setActionResult({ type, error: `Analysis failed: ${err.message}` });
         } finally {
             setActionLoading(false);
+            // 30s cooldown to prevent quota burn
+            setCooldown(true);
+            setTimeout(() => setCooldown(false), 30_000);
         }
-    }, [currentData, sensorsRef, aiRef, refreshAIAnalysis]);
+    }, [currentData, sensorsRef, aiRef]);
 
     const handleExport = useCallback(() => {
         if (actionResult?.type === 'report' && actionResult.data) {
@@ -579,10 +514,10 @@ Return ONLY valid JSON, no markdown. Include 4-6 recommendations.`;
                                 key={key}
                                 className={`ai-action-card ${activeAction === key ? 'active' : ''}`}
                                 onClick={() => key === 'report' && activeAction === 'report' && actionResult ? handleExport() : handleAction(key)}
-                                disabled={actionLoading}
+                                disabled={actionLoading || cooldown}
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{action.icon}</svg>
-                                <span>{action.label}</span>
+                                <span>{cooldown && !actionLoading ? '⏳ Cooldown…' : action.label}</span>
                             </button>
                         ))}
                     </div>

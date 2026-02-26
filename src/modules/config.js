@@ -7,11 +7,9 @@
  */
 
 const CONFIG = {
-    // Gemini AI API Configuration
-    GEMINI: {
-        API_KEY: import.meta.env.VITE_GEMINI_API_KEY || '',
-        MODEL: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash',
-        API_URL: import.meta.env.VITE_GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models'
+    // Backend API (Python Flask — handles all Gemini calls server-side)
+    BACKEND: {
+        API_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
     },
 
     // Supabase Configuration
@@ -39,7 +37,7 @@ const CONFIG = {
 
 // Freeze config to prevent modifications
 Object.freeze(CONFIG);
-Object.freeze(CONFIG.GEMINI);
+Object.freeze(CONFIG.BACKEND);
 Object.freeze(CONFIG.SUPABASE);
 Object.freeze(CONFIG.N8N);
 Object.freeze(CONFIG.APP);

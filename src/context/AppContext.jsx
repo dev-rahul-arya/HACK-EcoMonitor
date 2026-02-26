@@ -163,7 +163,7 @@ export function AppProvider({ children }) {
             await refreshData();
             setConnected(true);
             setIsLoading(false);
-            refreshAIAnalysis();
+            // AI analysis is user-triggered only (saves Gemini quota)
             intervalId = setInterval(refreshData, CONFIG.APP.REFRESH_INTERVAL);
         };
         init();

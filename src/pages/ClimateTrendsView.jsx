@@ -305,52 +305,24 @@ export default function ClimateTrendsView() {
     // --- AI Policy Brief (structured, not chatbot) ---
     const [policyBrief, setPolicyBrief] = useState(null);
     const [policyLoading, setPolicyLoading] = useState(false);
+    const [policyCooldown, setPolicyCooldown] = useState(false);
 
     const generatePolicyBrief = useCallback(async () => {
-        if (!stats.totalRecords) return;
+        if (!stats.totalRecords || policyBrief) return; // skip if already generated (static data)
         setPolicyLoading(true);
         try {
-            const prompt = `You are a climate policy advisor. Our climate analytics system has computed the following findings from ${stats.totalRecords} years of global temperature data (${stats.yearRange}).
-
-=== OUR COMPUTED ANALYSIS (Algorithm Outputs) ===
-Warming Rate: ${risk.factors.warmingRate}°C per century (linear regression)
-Temperature Variability (σ): ${risk.factors.variability}°C  
-Warming Acceleration (last vs first 3 decades): ${risk.factors.acceleration > 0 ? '+' : ''}${risk.factors.acceleration}°C
-Anomalous Years Detected: ${anomalies.length} (>1.5σ threshold)
-${anomalies.length > 0 ? `Warm anomalies: ${anomalies.filter(a => a.type === 'warm').length}, Cold anomalies: ${anomalies.filter(a => a.type === 'cold').length}` : ''}
-Composite Risk Index: ${risk.score}/100 (${risk.level})
-  - Trend component: ${risk.trendScore}/40
-  - Variability component: ${risk.variabilityScore}/30
-  - Acceleration component: ${risk.accelerationScore}/30
-Hottest Year: ${stats.hottest.year} (${stats.hottest.temp}°C)
-Coldest Year: ${stats.coldest.year} (${stats.coldest.temp}°C)
-Projected temp in 50 years: ${projections.length > 0 ? projections[projections.length - 1].predicted + '°C (95% CI: ' + projections[projections.length - 1].lower + '–' + projections[projections.length - 1].upper + '°C)' : 'N/A'}
-Total change (first to last decade): ${stats.totalChange}°C
-
-Based ONLY on these computed results, generate a structured policy brief as JSON:
-{
-  "executiveSummary": "3-4 sentence summary for policymakers (reference specific numbers from our analysis)",
-  "keyRisks": [
-    {"risk": "risk title", "evidence": "reference OUR computed data point", "urgency": "immediate|short-term|long-term"}
-  ],
-  "policyRecommendations": [
-    {"action": "specific policy action", "rationale": "why, referencing our data", "timeline": "timeframe", "impact": "high|medium|low"}
-  ],
-  "dataLimitations": ["limitation1", "limitation2"],
-  "confidenceLevel": "high|medium|low",
-  "confidenceExplanation": "brief explanation of confidence level"
-}
-Return ONLY valid JSON. Include 3-4 risks and 3-5 recommendations. Always reference our computed numbers.`;
-
-            const parsed = await aiRef.current.callGeminiJSON(prompt);
+            // Backend does pandas processing + compact Gemini call
+            const parsed = await aiRef.current.climatePolicyBrief();
             setPolicyBrief(parsed);
         } catch (err) {
             console.error('Policy brief error:', err);
             setPolicyBrief({ error: `Failed to generate policy brief: ${err.message}` });
         } finally {
             setPolicyLoading(false);
+            setPolicyCooldown(true);
+            setTimeout(() => setPolicyCooldown(false), 60_000); // 60s cooldown
         }
-    }, [stats, risk, anomalies, projections, aiRef]);
+    }, [stats, aiRef, policyBrief]);
 
     if (loading) {
         return (
@@ -579,11 +551,11 @@ Return ONLY valid JSON. Include 3-4 risks and 3-5 recommendations. Always refere
                             <h3>AI-Enhanced Policy Brief</h3>
                             <span className="findings-subtitle">Gemini synthesizes our algorithmic outputs into actionable policy guidance</span>
                         </div>
-                        <button className="ai-recs-btn" onClick={generatePolicyBrief} disabled={policyLoading}>
+                        <button className="ai-recs-btn" onClick={generatePolicyBrief} disabled={policyLoading || policyCooldown || !!policyBrief}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
                                 <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
                             </svg>
-                            <span>{policyLoading ? 'Generating Brief...' : 'Generate Policy Brief'}</span>
+                            <span>{policyLoading ? 'Generating Brief...' : policyBrief ? 'Brief Generated ✓' : 'Generate Policy Brief'}</span>
                         </button>
                     </div>
 
