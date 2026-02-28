@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import DashboardLayout from './layouts/DashboardLayout';
 import HomePage from './pages/HomePage';
@@ -13,6 +14,16 @@ import AlertsView from './pages/AlertsView';
 import AIInsightsView from './pages/AIInsightsView';
 import ClimateTrendsView from './pages/ClimateTrendsView';
 
+function RequireAuth({ children }) {
+    const { user, loading, authEnabled } = useAuth();
+    const location = useLocation();
+
+    if (!authEnabled) return children;
+    if (loading) return null;
+    if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+    return children;
+}
+
 export default function App() {
     return (
         <BrowserRouter>
@@ -24,9 +35,11 @@ export default function App() {
                     <Route
                         path="/dashboard"
                         element={
-                            <AppProvider>
-                                <DashboardLayout />
-                            </AppProvider>
+                            <RequireAuth>
+                                <AppProvider>
+                                    <DashboardLayout />
+                                </AppProvider>
+                            </RequireAuth>
                         }
                     >
                         <Route index element={<DashboardView />} />

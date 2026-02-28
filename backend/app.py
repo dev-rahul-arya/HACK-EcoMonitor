@@ -82,6 +82,7 @@ def _call_gemini(
     if not _genai_client:
         raise RuntimeError("Gemini API key not configured")
 
+    prompt = _truncate_prompt(prompt)
     model = GEMINI_MODEL_LITE if lite else GEMINI_MODEL
 
     for attempt in range(retries):
@@ -131,6 +132,47 @@ def _classify_aqi(aqi: int) -> str:
     if aqi <= 200:
         return "Unhealthy"
     return "Hazardous"
+
+
+def _truncate_prompt(prompt: str, max_chars: int = 3500) -> str:
+    """Hard guardrail to keep prompt size bounded even if upstream payloads are large."""
+    if len(prompt) <= max_chars:
+        return prompt
+
+    head = int(max_chars * 0.65)
+    tail = max_chars - head
+    return (
+        prompt[:head].rstrip()
+        + "\n...[truncated to control token usage]...\n"
+        + prompt[-tail:].lstrip()
+    )
+
+
+def _compact_historical_payload(historical: dict, max_points: int = 60) -> dict:
+    """Keep only the latest values needed for trend/anomaly logic."""
+    if not isinstance(historical, dict):
+        return {}
+
+    compact: dict = {}
+    for key in ("aqi", "temperature", "humidity", "waterPh"):
+        values = historical.get(key, [])
+        if not isinstance(values, list):
+            compact[key] = []
+            continue
+
+        trimmed = values[-max_points:]
+        clean_vals = []
+        for value in trimmed:
+            try:
+                clean_vals.append(round(float(value), 3))
+            except (TypeError, ValueError):
+                continue
+        compact[key] = clean_vals
+
+    timestamps = historical.get("timestamps", [])
+    compact["timestamps"] = timestamps[-max_points:] if isinstance(timestamps, list) else []
+    compact["points"] = len(compact.get("aqi", []))
+    return compact
 
 
 def _compute_env_score(sensor: dict) -> int:
@@ -608,7 +650,7 @@ def analyze_trends():
 def predict_anomalies():
     data = request.get_json()
     sensor = data.get("sensorData", {})
-    historical = data.get("historicalData", {})
+    historical = _compact_historical_payload(data.get("historicalData", {}), max_points=72)
 
     # Do anomaly detection server-side
     local_anomalies = _detect_anomalies(sensor, historical)
@@ -649,7 +691,7 @@ def predict_anomalies():
 def health_recommendations():
     data = request.get_json()
     sensor = data.get("sensorData", {})
-    historical = data.get("historicalData", {})
+    historical = _compact_historical_payload(data.get("historicalData", {}), max_points=48)
     anomaly_msgs = data.get("anomalyMessages", [])
 
     ck = _cache_key("health", sensor)
@@ -663,6 +705,7 @@ def health_recommendations():
     prompt = (
         f"Env score:{env_score}/100, AQI:{aqi}({_classify_aqi(aqi)}), "
         f"readings:{_sensor_summary(sensor)}, "
+        f"recentPoints:{historical.get('points', 0)}, "
         f"anomalies:{'; '.join(anomaly_msgs) or 'none'}.\n"
         "Return JSON: {urgentActions:[str],healthAdvisory:{category(safe|caution|warning|danger),message},"
         "recommendations:[{title,detail,icon(air|water|sun|health|indoor|outdoor),priority(high|medium|low)}],"

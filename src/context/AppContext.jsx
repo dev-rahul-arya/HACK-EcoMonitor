@@ -27,6 +27,13 @@ export function AppProvider({ children }) {
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const [aiLoading, setAiLoading] = useState(false);
     const [connected, setConnected] = useState(false);
+    const [supabaseStatus, setSupabaseStatus] = useState({
+        configured: false,
+        connected: false,
+        auth: false,
+        tablesExist: false,
+        reason: 'not_checked',
+    });
     const [lastSyncTime, setLastSyncTime] = useState('--:--');
     const [isLoading, setIsLoading] = useState(true);
     const [toasts, setToasts] = useState([]);
@@ -131,6 +138,39 @@ export function AppProvider({ children }) {
         return await supabaseRef.current.getUserSettings();
     }, []);
 
+    const refreshSupabaseStatus = useCallback(async () => {
+        try {
+            const configured = supabaseRef.current.isConfigured;
+            if (!configured) {
+                setSupabaseStatus({
+                    configured: false,
+                    connected: false,
+                    auth: false,
+                    tablesExist: false,
+                    reason: 'not_configured',
+                });
+                return;
+            }
+
+            const conn = await supabaseRef.current.checkConnection();
+            setSupabaseStatus({
+                configured: true,
+                connected: Boolean(conn.connected),
+                auth: Boolean(conn.auth),
+                tablesExist: Boolean(conn.tablesExist),
+                reason: conn.reason || null,
+            });
+        } catch {
+            setSupabaseStatus({
+                configured: true,
+                connected: false,
+                auth: false,
+                tablesExist: false,
+                reason: 'check_failed',
+            });
+        }
+    }, []);
+
     const searchLocation = useCallback(async (query) => {
         if (!query) { showToast('warning', 'Search', 'Please enter a location to search'); return null; }
         showToast('info', 'Searching...', `Looking up "${query}"`);
@@ -159,6 +199,21 @@ export function AppProvider({ children }) {
             if (supabaseInit) {
                 const conn = await supabaseRef.current.checkConnection();
                 setConnected(conn.connected);
+                setSupabaseStatus({
+                    configured: true,
+                    connected: Boolean(conn.connected),
+                    auth: Boolean(conn.auth),
+                    tablesExist: Boolean(conn.tablesExist),
+                    reason: conn.reason || null,
+                });
+            } else {
+                setSupabaseStatus({
+                    configured: false,
+                    connected: false,
+                    auth: false,
+                    tablesExist: false,
+                    reason: 'not_configured',
+                });
             }
             await refreshData();
             setConnected(true);
@@ -172,12 +227,12 @@ export function AppProvider({ children }) {
 
     const value = {
         currentData, historicalData, alertHistory, unreadAlertCount,
-        sensorList, aiAnalysis, aiLoading, connected, lastSyncTime, isLoading,
+        sensorList, aiAnalysis, aiLoading, connected, supabaseStatus, lastSyncTime, isLoading,
         toasts, showToast, removeToast,
         refreshData, refreshAIAnalysis,
         markAlertRead, markAllAlertsRead,
         exportReport, exportAlerts, sendEmergencyAlert,
-        saveSettings, loadSettings, searchLocation,
+        saveSettings, loadSettings, searchLocation, refreshSupabaseStatus,
         sensorsRef, alertsRef, aiRef,
     };
 

@@ -46,11 +46,28 @@ export default function SignupPage() {
 
         setLoading(true);
         try {
-            const result = await signup(email, password, { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}` });
-            if (result?.user?.identities?.length === 0) {
-                showMessage('An account with this email already exists. Please sign in instead.');
+            // Metadata feeds the DB trigger handle_new_user() → profiles table.
+            // The trigger reads: raw_user_meta_data->>'first_name', ->>'last_name',
+            //                    ->>'full_name', ->>'avatar_url'
+            const result = await signup(email, password, {
+                first_name: firstName,
+                last_name: lastName,
+                full_name: `${firstName} ${lastName}`,
+            });
+            if (!result?.success) {
+                showMessage(result?.error || 'Failed to create account. Please try again.');
+                return;
+            }
+
+            // If email-confirm is disabled in Supabase, we get a session immediately.
+            if (result.session) {
+                showMessage('Account created! Redirecting...', 'success');
+                setTimeout(() => navigate('/dashboard'), 1000);
             } else {
-                showMessage('Account created! Please check your email to verify your account.', 'success');
+                showMessage(
+                    result?.message || 'Account created! Please check your email to verify your account.',
+                    'success'
+                );
             }
         } catch (error) {
             showMessage(error.message || 'Failed to create account. Please try again.');
@@ -60,7 +77,14 @@ export default function SignupPage() {
     };
 
     const handleOAuth = async (provider) => {
-        try { await signInWithProvider(provider); } catch (error) { showMessage(error.message || `${provider} sign-up failed`); }
+        try {
+            const result = await signInWithProvider(provider);
+            if (!result?.success) {
+                showMessage(result?.error || `${provider} sign-up failed`);
+            }
+        } catch (error) {
+            showMessage(error.message || `${provider} sign-up failed`);
+        }
     };
 
     const CheckSvg = () => (

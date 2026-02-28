@@ -31,7 +31,7 @@ function StatCard({ label, value, unit, trend, indicatorColor }) {
 export default function DashboardView() {
     const {
         currentData, historicalData, aiAnalysis, aiLoading, refreshAIAnalysis,
-        alertHistory, sensorList, sensorsRef, exportReport
+        alertHistory, sensorList, sensorsRef, exportReport, supabaseStatus, refreshSupabaseStatus
     } = useApp();
 
     const labels = useMemo(() =>
@@ -192,6 +192,36 @@ export default function DashboardView() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                     <span>Export Report</span>
                 </button>
+            </div>
+
+            <div className="panel" style={{ marginTop: '1rem' }}>
+                <div className="panel-header">
+                    <div className="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3h18v18H3z" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
+                        <h3>Supabase Status</h3>
+                    </div>
+                    <button className="panel-action" onClick={refreshSupabaseStatus} title="Refresh Supabase Status">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                    </button>
+                </div>
+                <div className="ai-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(120px, 1fr))', gap: '0.75rem' }}>
+                    <div className="ai-insight">
+                        <div className="ai-insight-title">Configured</div>
+                        <div className="ai-insight-text">{supabaseStatus?.configured ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div className="ai-insight">
+                        <div className="ai-insight-title">Connected</div>
+                        <div className="ai-insight-text">{supabaseStatus?.connected ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div className="ai-insight">
+                        <div className="ai-insight-title">Authenticated</div>
+                        <div className="ai-insight-text">{supabaseStatus?.auth ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div className="ai-insight">
+                        <div className="ai-insight-title">Tables Ready</div>
+                        <div className="ai-insight-text">{supabaseStatus?.tablesExist ? 'Yes' : 'No'}</div>
+                    </div>
+                </div>
             </div>
         </section>
     );

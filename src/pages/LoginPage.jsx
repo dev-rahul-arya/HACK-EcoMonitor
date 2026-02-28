@@ -19,7 +19,11 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         try {
-            await login(email, password);
+            const result = await login(email, password);
+            if (!result?.success) {
+                showMessage(result?.error || 'Login failed. Please check your credentials.');
+                return;
+            }
             showMessage('Login successful! Redirecting...', 'success');
             setTimeout(() => navigate('/dashboard'), 1000);
         } catch (error) {
@@ -31,7 +35,10 @@ export default function LoginPage() {
 
     const handleOAuth = async (provider) => {
         try {
-            await signInWithProvider(provider);
+            const result = await signInWithProvider(provider);
+            if (!result?.success) {
+                showMessage(result?.error || `${provider} sign-in failed`);
+            }
         } catch (error) {
             showMessage(error.message || `${provider} sign-in failed`);
         }

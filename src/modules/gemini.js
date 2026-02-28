@@ -14,6 +14,36 @@ class GeminiAI {
         this._inflight = new Map();       // dedup concurrent identical requests
     }
 
+    _compactHistoricalData(historicalData, maxPoints = 60) {
+        if (!historicalData || typeof historicalData !== 'object') return {};
+
+        const numericKeys = ['aqi', 'temperature', 'humidity', 'waterPh'];
+        const compact = {};
+
+        for (const key of numericKeys) {
+            const arr = Array.isArray(historicalData[key]) ? historicalData[key] : [];
+            compact[key] = arr.slice(-maxPoints).map((value) => {
+                const parsed = Number(value);
+                return Number.isFinite(parsed) ? Number(parsed.toFixed(3)) : null;
+            }).filter((value) => value !== null);
+        }
+
+        const timestamps = Array.isArray(historicalData.timestamps) ? historicalData.timestamps : [];
+        compact.timestamps = timestamps.slice(-maxPoints);
+        compact.points = compact.aqi.length;
+
+        return compact;
+    }
+
+    _compactAnomalyMessages(anomalyMessages, maxItems = 8, maxCharsPerItem = 120) {
+        if (!Array.isArray(anomalyMessages)) return [];
+        return anomalyMessages
+            .slice(0, maxItems)
+            .map((msg) => String(msg || '').trim())
+            .filter(Boolean)
+            .map((msg) => (msg.length > maxCharsPerItem ? `${msg.slice(0, maxCharsPerItem)}…` : msg));
+    }
+
     /* ── Generic backend fetch helper with caching + dedup ───────── */
     async _post(endpoint, body = {}) {
         const cacheKey = endpoint + '::' + JSON.stringify(body);
@@ -88,12 +118,19 @@ class GeminiAI {
 
     /** 4. Anomaly prediction — used by AIInsightsView */
     async predictAnomalies(sensorData, historicalData) {
-        return this._post('/api/ai/predict-anomalies', { sensorData, historicalData });
+        const compactHistoricalData = this._compactHistoricalData(historicalData, 72);
+        return this._post('/api/ai/predict-anomalies', { sensorData, historicalData: compactHistoricalData });
     }
 
     /** 5. Health recommendations — used by AIInsightsView */
     async healthRecommendations(sensorData, historicalData, anomalyMessages) {
-        return this._post('/api/ai/health-recommendations', { sensorData, historicalData, anomalyMessages });
+        const compactHistoricalData = this._compactHistoricalData(historicalData, 48);
+        const compactMessages = this._compactAnomalyMessages(anomalyMessages);
+        return this._post('/api/ai/health-recommendations', {
+            sensorData,
+            historicalData: compactHistoricalData,
+            anomalyMessages: compactMessages,
+        });
     }
 
     /** 6. Climate policy brief — used by ClimateTrendsView */
