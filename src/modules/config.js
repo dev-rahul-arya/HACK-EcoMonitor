@@ -7,7 +7,7 @@
  */
 
 const CONFIG = {
-    // Backend API (Python Flask — handles all Gemini calls server-side)
+    // Backend API (Node.js Express — handles all Gemini calls server-side)
     BACKEND: {
         API_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000',
     },
