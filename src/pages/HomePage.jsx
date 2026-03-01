@@ -42,7 +42,7 @@ export default function HomePage() {
             <section className="hero">
                 <div className="hero-bg"><div className="hero-gradient"></div><div className="hero-particles"></div></div>
                 <div className="hero-content">
-                    <div className="hero-badge"><span className="badge-icon">🌍</span><span>Climate Tech Innovation</span></div>
+                    <div className="hero-badge"><span className="badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span>Climate Tech Innovation</span></div>
                     <h1 className="hero-title">Real-Time Environmental <span className="gradient-text">Intelligence Platform</span></h1>
                     <p className="hero-subtitle">Monitor air quality, water safety, and weather conditions with AI-powered insights. Protect your community with automated alerts and data-driven decisions.</p>
                     <div className="hero-cta">
@@ -79,15 +79,15 @@ export default function HomePage() {
                     </div>
                     <div className="features-grid">
                         {[
-                            { cls: 'air', title: 'Air Quality Monitoring', desc: 'Track AQI, PM2.5, PM10, O₃, NO₂, SO₂, and CO levels with real-time updates and historical trends.', items: ['Real-time AQI calculations', 'Pollutant breakdown analysis', 'Health impact assessments'] },
-                            { cls: 'water', title: 'Water Quality Analysis', desc: 'Monitor pH levels, dissolved oxygen, turbidity, TDS, and conductivity for safe water assurance.', items: ['Multi-parameter testing', 'Contamination alerts', 'Safe drinking indicators'] },
-                            { cls: 'weather', title: 'Weather Tracking', desc: 'Get temperature, humidity, pressure, wind speed, UV index, and weather forecasts for any location.', items: ['24-hour forecasts', 'Severe weather alerts', 'Global location search'] },
-                            { cls: 'ai', title: 'AI-Powered Insights', desc: 'Leverage Gemini AI for intelligent analysis, anomaly detection, and actionable recommendations.', items: ['Trend predictions', 'Anomaly detection', 'Health recommendations'] },
-                            { cls: 'alerts', title: 'Automated Alerts', desc: 'Receive instant notifications via email when environmental conditions exceed safe thresholds.', items: ['Customizable thresholds', 'Email notifications', 'Emergency protocols'] },
-                            { cls: 'data', title: 'Data Visualization', desc: 'Beautiful charts and graphs to visualize trends, compare data, and make informed decisions.', items: ['Interactive charts', 'Export reports', 'Historical analysis'] },
+                            { cls: 'air', title: 'Air Quality Monitoring', desc: 'Track AQI, PM2.5, PM10, O₃, NO₂, SO₂, and CO levels with real-time updates and historical trends.', items: ['Real-time AQI calculations', 'Pollutant breakdown analysis', 'Health impact assessments'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.7 7.7a7.5 7.5 0 1 0-10.6 10.6"/><path d="M8 16h.01"/><path d="M12 12h.01"/><path d="M16 8h.01"/><path d="M20 4h.01"/></svg> },
+                            { cls: 'water', title: 'Water Quality Analysis', desc: 'Monitor pH levels, dissolved oxygen, turbidity, TDS, and conductivity for safe water assurance.', items: ['Multi-parameter testing', 'Contamination alerts', 'Safe drinking indicators'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> },
+                            { cls: 'weather', title: 'Weather Tracking', desc: 'Get temperature, humidity, pressure, wind speed, UV index, and weather forecasts for any location.', items: ['24-hour forecasts', 'Severe weather alerts', 'Global location search'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> },
+                            { cls: 'ai', title: 'AI-Powered Insights', desc: 'Leverage Gemini AI for intelligent analysis, anomaly detection, and actionable recommendations.', items: ['Trend predictions', 'Anomaly detection', 'Health recommendations'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22"/><path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93"/><path d="M4 13h16"/><path d="M6 17h12"/></svg> },
+                            { cls: 'alerts', title: 'Automated Alerts', desc: 'Receive instant notifications via email when environmental conditions exceed safe thresholds.', items: ['Customizable thresholds', 'Email notifications', 'Emergency protocols'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
+                            { cls: 'data', title: 'Data Visualization', desc: 'Beautiful charts and graphs to visualize trends, compare data, and make informed decisions.', items: ['Interactive charts', 'Export reports', 'Historical analysis'], icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> },
                         ].map(f => (
                             <div key={f.cls} className="feature-card">
-                                <div className={`feature-icon ${f.cls}`}></div>
+                                <div className={`feature-icon ${f.cls}`}>{f.icon}</div>
                                 <h3>{f.title}</h3>
                                 <p>{f.desc}</p>
                                 <ul className="feature-list">{f.items.map(item => <li key={item}>{item}</li>)}</ul>
@@ -128,9 +128,9 @@ export default function HomePage() {
                             </ul>
                         </div>
                         <div className="benefits-image">
-                            <div className="benefits-card"><div className="card-icon">🌱</div><h4>For Urban Residents</h4><p>Know when it&apos;s safe to exercise outdoors or when to keep windows closed.</p></div>
-                            <div className="benefits-card"><div className="card-icon">🏛️</div><h4>For Environmental Agencies</h4><p>Monitor compliance, track trends, and make data-driven policy decisions.</p></div>
-                            <div className="benefits-card"><div className="card-icon">🏥</div><h4>For Healthcare</h4><p>Correlate health data with environmental factors for better patient outcomes.</p></div>
+                            <div className="benefits-card"><div className="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M7 15l2-2"/><path d="M15 15l-2-2"/></svg></div><h4>For Urban Residents</h4><p>Know when it&apos;s safe to exercise outdoors or when to keep windows closed.</p></div>
+                            <div className="benefits-card"><div className="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg></div><h4>For Environmental Agencies</h4><p>Monitor compliance, track trends, and make data-driven policy decisions.</p></div>
+                            <div className="benefits-card"><div className="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h4>For Healthcare</h4><p>Correlate health data with environmental factors for better patient outcomes.</p></div>
                         </div>
                     </div>
                 </div>

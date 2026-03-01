@@ -2,6 +2,27 @@ import { useState, useCallback, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useApp } from '../context/AppContext';
 
+/* Inline SVG icon helpers — replace all emojis with consistent stroke icons */
+const ico = (paths, size = 16) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }}>{paths}</svg>
+);
+const IcoWind = (s = 16) => ico(<><path d="M17.7 7.7a7.5 7.5 0 1 0-10.6 10.6"/><path d="M8 16h.01"/><path d="M12 12h.01"/><path d="M16 8h.01"/></>, s);
+const IcoThermo = (s = 16) => ico(<><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></>, s);
+const IcoDrop = (s = 16) => ico(<><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></>, s);
+const IcoClock = (s = 16) => ico(<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>, s);
+const IcoCalendar = (s = 16) => ico(<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>, s);
+const IcoSearch = (s = 16) => ico(<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>, s);
+const IcoCpu = (s = 16) => ico(<><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></>, s);
+const IcoAlert = (s = 16) => ico(<><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>, s);
+const IcoZap = (s = 16) => ico(<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>, s);
+const IcoShield = (s = 16) => ico(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>, s);
+const IcoHeart = (s = 16) => ico(<><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></>, s);
+const IcoSun = (s = 16) => ico(<><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>, s);
+const IcoHome = (s = 16) => ico(<><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>, s);
+const IcoTree = (s = 16) => ico(<><path d="M17 14l3-6H4l3 6"/><path d="M15 18l2-4H7l2 4"/><line x1="12" y1="22" x2="12" y2="18"/></>, s);
+const IcoRun = (s = 16) => ico(<><circle cx="12" cy="5" r="2"/><path d="M4 17l4-4 2 2 4-4 2 2"/></>, s);
+const IcoClipboard = (s = 16) => ico(<><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></>, s);
+
 const ACTIONS = {
     trends: { label: 'Analyze Trends', icon: <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></> },
     anomalies: { label: 'Predict Anomalies', icon: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></> },
@@ -264,7 +285,7 @@ export default function AIInsightsView() {
         }
         if (!actionResult) return null;
         if (actionResult.error) {
-            return <div className="ai-output-area"><div className="ai-error-msg">⚠ {actionResult.error}</div></div>;
+            return <div className="ai-output-area"><div className="ai-error-msg">{IcoAlert()} {actionResult.error}</div></div>;
         }
 
         const { type, data } = actionResult;
@@ -280,21 +301,21 @@ export default function AIInsightsView() {
                     <div className="ai-trend-cards">
                         <div className="ai-trend-card">
                             <div className="ai-trend-card-top">
-                                <span className="ai-trend-label">🌫 Air Quality</span>
+                                <span className="ai-trend-label">{IcoWind()} Air Quality</span>
                                 {renderTrendDirection(data.airTrend?.direction)}
                             </div>
                             <p>{data.airTrend?.detail}</p>
                         </div>
                         <div className="ai-trend-card">
                             <div className="ai-trend-card-top">
-                                <span className="ai-trend-label">🌡 Temperature</span>
+                                <span className="ai-trend-label">{IcoThermo()} Temperature</span>
                                 {renderTrendDirection(data.tempTrend?.direction)}
                             </div>
                             <p>{data.tempTrend?.detail}</p>
                         </div>
                         <div className="ai-trend-card">
                             <div className="ai-trend-card-top">
-                                <span className="ai-trend-label">💧 Water Quality</span>
+                                <span className="ai-trend-label">{IcoDrop()} Water Quality</span>
                                 {renderTrendDirection(data.waterTrend?.direction)}
                             </div>
                             <p>{data.waterTrend?.detail}</p>
@@ -302,11 +323,11 @@ export default function AIInsightsView() {
                     </div>
                     <div className="ai-forecast-strip">
                         <div className="ai-forecast-item">
-                            <span className="forecast-label">⏱ 6-Hour Forecast</span>
+                            <span className="forecast-label">{IcoClock()} 6-Hour Forecast</span>
                             <p>{data.forecast6h}</p>
                         </div>
                         <div className="ai-forecast-item">
-                            <span className="forecast-label">📅 24-Hour Forecast</span>
+                            <span className="forecast-label">{IcoCalendar()} 24-Hour Forecast</span>
                             <p>{data.forecast24h}</p>
                         </div>
                     </div>
@@ -332,7 +353,7 @@ export default function AIInsightsView() {
                     {/* Local computed anomalies */}
                     {actionResult.local?.length > 0 && (
                         <div className="ai-section-block">
-                            <h4>🔍 Detected by Our Algorithms</h4>
+                            <h4>{IcoSearch()} Detected by Our Algorithms</h4>
                             <div className="ai-anomaly-list">
                                 {actionResult.local.map((a, i) => (
                                     <div key={i} className={`ai-anomaly-item ${a.severity}`}>
@@ -354,7 +375,7 @@ export default function AIInsightsView() {
 
                     {/* AI predictions */}
                     <div className="ai-section-block">
-                        <h4>🤖 AI-Predicted Anomalies (Next 6-12h)</h4>
+                        <h4>{IcoCpu()} AI-Predicted Anomalies (Next 6-12h)</h4>
                         <p className="ai-output-summary">{data.summary}</p>
                         <div className="ai-prediction-list">
                             {data.predictions?.map((p, i) => (
@@ -365,7 +386,7 @@ export default function AIInsightsView() {
                                     </div>
                                     <p>{p.prediction}</p>
                                     <div className="prediction-footer">
-                                        <span>⏱ {p.timeframe}</span>
+                                        <span>{IcoClock()} {p.timeframe}</span>
                                         <div className="probability-bar">
                                             <div className="probability-fill" style={{ width: `${(p.probability || 0) * 100}%` }}></div>
                                             <span>{Math.round((p.probability || 0) * 100)}%</span>
@@ -381,7 +402,7 @@ export default function AIInsightsView() {
 
         if (type === 'recommendations') {
             const catColors = { safe: '#10b981', caution: '#f59e0b', warning: '#f97316', danger: '#ef4444' };
-            const iconMap = { air: '🌫', water: '💧', sun: '☀️', health: '❤️', indoor: '🏠', outdoor: '🌳' };
+            const iconMap = { air: IcoWind(20), water: IcoDrop(20), sun: IcoSun(20), health: IcoHeart(20), indoor: IcoHome(20), outdoor: IcoTree(20) };
             return (
                 <div className="ai-output-area">
                     <div className="ai-output-header">
@@ -396,7 +417,7 @@ export default function AIInsightsView() {
 
                     {data.urgentActions?.length > 0 && (
                         <div className="ai-section-block urgent">
-                            <h4>⚡ Urgent Actions</h4>
+                            <h4>{IcoZap()} Urgent Actions</h4>
                             <ul className="urgent-list">{data.urgentActions.map((a, i) => <li key={i}>{a}</li>)}</ul>
                         </div>
                     )}
@@ -404,7 +425,7 @@ export default function AIInsightsView() {
                     <div className="ai-rec-cards">
                         {data.recommendations?.map((r, i) => (
                             <div key={i} className={`ai-rec-card priority-${r.priority}`}>
-                                <div className="ai-rec-icon">{iconMap[r.icon] || '📋'}</div>
+                                <div className="ai-rec-icon">{iconMap[r.icon] || IcoClipboard(20)}</div>
                                 <div className="ai-rec-body">
                                     <strong>{r.title}</strong>
                                     <p>{r.detail}</p>
@@ -416,14 +437,14 @@ export default function AIInsightsView() {
 
                     {data.vulnerableGroups?.length > 0 && (
                         <div className="ai-section-block">
-                            <h4>🛡 Vulnerable Groups</h4>
+                            <h4>{IcoShield()} Vulnerable Groups</h4>
                             <ul className="vulnerable-list">{data.vulnerableGroups.map((g, i) => <li key={i}>{g}</li>)}</ul>
                         </div>
                     )}
 
                     {data.exerciseAdvice && (
                         <div className="ai-exercise-box">
-                            <span>🏃 Exercise Advice:</span> {data.exerciseAdvice}
+                            <span>{IcoRun()} Exercise Advice:</span> {data.exerciseAdvice}
                         </div>
                     )}
                 </div>
@@ -443,37 +464,95 @@ export default function AIInsightsView() {
                             Download JSON
                         </button>
                     </div>
-                    <div className="report-meta">
-                        <span>Generated: {rpt.generatedAt}</span>
-                        <span>Environment Score: <strong style={{ color: rpt.envScore >= 70 ? '#10b981' : rpt.envScore >= 40 ? '#f59e0b' : '#ef4444' }}>{rpt.envScore}/100</strong></span>
-                        <span>AQI: <strong style={{ color: rpt.aqiCategory.color }}>{rpt.sensorData.air.aqi} ({rpt.aqiCategory.label})</strong></span>
+
+                    {/* Score banner */}
+                    <div className="report-score-banner">
+                        <div className="report-score-ring" style={{ '--score-color': rpt.envScore >= 70 ? '#10b981' : rpt.envScore >= 40 ? '#f59e0b' : '#ef4444' }}>
+                            <span className="score-number">{rpt.envScore}</span>
+                            <span className="score-label">/ 100</span>
+                        </div>
+                        <div className="report-score-details">
+                            <span className="report-score-title">Environment Score</span>
+                            <span className="report-score-desc">{rpt.envScore >= 70 ? 'Good — conditions are within safe parameters' : rpt.envScore >= 40 ? 'Moderate — some metrics need attention' : 'Poor — immediate action recommended'}</span>
+                        </div>
                     </div>
-                    <div className="report-section">
-                        <h4>Summary</h4>
-                        <p>{rpt.analysis?.summary || 'No summary available.'}</p>
+
+                    {/* Key metrics */}
+                    <div className="report-metrics-row">
+                        <div className="report-metric-card">
+                            <span className="report-metric-label">Generated</span>
+                            <span className="report-metric-value">{rpt.generatedAt}</span>
+                        </div>
+                        <div className="report-metric-card">
+                            <span className="report-metric-label">Air Quality</span>
+                            <span className="report-metric-value" style={{ color: rpt.aqiCategory.color }}>{rpt.sensorData.air.aqi} <small>({rpt.aqiCategory.label})</small></span>
+                        </div>
+                        <div className="report-metric-card">
+                            <span className="report-metric-label">Temperature</span>
+                            <span className="report-metric-value">{rpt.sensorData.weather?.temperature ?? '--'}°C</span>
+                        </div>
+                        <div className="report-metric-card">
+                            <span className="report-metric-label">Water pH</span>
+                            <span className="report-metric-value">{rpt.sensorData.water?.ph ?? '--'}</span>
+                        </div>
                     </div>
+
+                    {/* Summary */}
+                    <div className="report-card">
+                        <div className="report-card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                            <h4>Summary</h4>
+                        </div>
+                        <p className="report-card-body">{rpt.analysis?.summary || 'No summary available.'}</p>
+                    </div>
+
+                    {/* Concerns */}
                     {rpt.analysis?.concerns?.length > 0 && (
-                        <div className="report-section concerns">
-                            <h4>Current Concerns</h4>
-                            <ul>{rpt.analysis.concerns.map((c, i) => <li key={i}>{c}</li>)}</ul>
+                        <div className="report-card report-card-warn">
+                            <div className="report-card-header">
+                                {IcoAlert(18)}
+                                <h4>Current Concerns</h4>
+                                <span className="report-card-count">{rpt.analysis.concerns.length}</span>
+                            </div>
+                            <ul className="report-card-list">{rpt.analysis.concerns.map((c, i) => <li key={i}>{c}</li>)}</ul>
                         </div>
                     )}
+
+                    {/* Recommendations */}
                     {rpt.analysis?.recommendations?.length > 0 && (
-                        <div className="report-section">
-                            <h4>Recommendations</h4>
-                            <ul>{rpt.analysis.recommendations.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                        <div className="report-card report-card-info">
+                            <div className="report-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                                <h4>Recommendations</h4>
+                            </div>
+                            <ul className="report-card-list">{rpt.analysis.recommendations.map((r, i) => <li key={i}>{r}</li>)}</ul>
                         </div>
                     )}
+
+                    {/* Prediction */}
                     {rpt.analysis?.prediction && (
-                        <div className="report-section">
-                            <h4>Prediction</h4>
-                            <p>{rpt.analysis.prediction}</p>
+                        <div className="report-card">
+                            <div className="report-card-header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+                                <h4>Prediction</h4>
+                            </div>
+                            <p className="report-card-body">{rpt.analysis.prediction}</p>
                         </div>
                     )}
+
+                    {/* Active Anomalies */}
                     {rpt.anomalies?.length > 0 && (
-                        <div className="report-section concerns">
-                            <h4>Active Anomalies ({rpt.anomalies.length})</h4>
-                            <ul>{rpt.anomalies.map((a, i) => <li key={i}><strong>{a.metric}:</strong> {a.message}</li>)}</ul>
+                        <div className="report-card report-card-warn">
+                            <div className="report-card-header">
+                                {IcoAlert(18)}
+                                <h4>Active Anomalies</h4>
+                                <span className="report-card-count">{rpt.anomalies.length}</span>
+                            </div>
+                            <ul className="report-card-list anomaly-list">{rpt.anomalies.map((a, i) => (
+                                <li key={i}><strong>{a.metric}:</strong> {a.message}
+                                    <span className={`anomaly-inline-badge ${a.severity}`}>{a.severity}</span>
+                                </li>
+                            ))}</ul>
                         </div>
                     )}
                 </div>
@@ -517,7 +596,7 @@ export default function AIInsightsView() {
                                 disabled={actionLoading || cooldown}
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{action.icon}</svg>
-                                <span>{cooldown && !actionLoading ? '⏳ Cooldown…' : action.label}</span>
+                                <span>{cooldown && !actionLoading ? <>{IcoClock()} Cooldown…</> : action.label}</span>
                             </button>
                         ))}
                     </div>

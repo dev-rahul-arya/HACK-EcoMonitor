@@ -2832,6 +2832,213 @@ body {
     opacity: 0.9;
 }
 
+/* Report score banner */
+.report-score-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--border-color);
+}
+
+.report-score-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 4px solid var(--score-color, #10b981);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.report-score-ring .score-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--score-color, #10b981);
+    line-height: 1;
+}
+
+.report-score-ring .score-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.report-score-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.report-score-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.report-score-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Report metrics row */
+.report-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.report-metric-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.report-metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.report-metric-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.report-metric-value small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Report cards */
+.report-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.report-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.report-card-header h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+}
+
+.report-card-header svg {
+    flex-shrink: 0;
+    color: var(--green-500);
+}
+
+.report-card-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full, 999px);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+}
+
+.report-card-body {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0;
+}
+
+.report-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.report-card-list li {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    border-left: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-card-warn {
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.report-card-warn .report-card-header svg {
+    color: #ef4444;
+}
+
+.report-card-warn .report-card-count {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+.report-card-warn .report-card-list li {
+    border-left-color: rgba(239, 68, 68, 0.3);
+}
+
+.report-card-info {
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.report-card-info .report-card-header svg {
+    color: #3b82f6;
+}
+
+.report-card-info .report-card-list li {
+    border-left-color: rgba(59, 130, 246, 0.3);
+}
+
+.anomaly-inline-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.anomaly-inline-badge.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.anomaly-inline-badge.critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
 .report-meta {
     display: flex;
     flex-wrap: wrap;

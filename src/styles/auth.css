@@ -2,20 +2,20 @@
    EcoMonitor - Authentication Pages Styles
    ============================================ */
 
-/* CSS Variables */
+/* CSS Variables — aligned with global navy palette (style.css / home.css) */
 :root {
     --primary: #10b981;
     --primary-dark: #059669;
     --primary-light: #34d399;
-    --navy-900: #0f172a;
-    --navy-800: #1e293b;
-    --navy-700: #334155;
-    --navy-600: #475569;
-    --navy-500: #64748b;
-    --navy-400: #94a3b8;
-    --navy-300: #cbd5e1;
-    --navy-200: #e2e8f0;
-    --navy-100: #f1f5f9;
+    --navy-900: #0a1628;
+    --navy-800: #0f1f35;
+    --navy-700: #162847;
+    --navy-600: #1e3a5f;
+    --navy-500: #2d6a9f;
+    --navy-400: #4a90c2;
+    --navy-300: #7eb3da;
+    --navy-200: #b3d4ed;
+    --navy-100: #e1eff8;
     --white: #ffffff;
     --error: #ef4444;
     --success: #10b981;
@@ -55,6 +55,7 @@ a:hover {
 .auth-container {
     display: flex;
     min-height: 100vh;
+    height: 100vh;
 }
 
 /* Left Side - Branding */
@@ -172,15 +173,19 @@ a:hover {
 .auth-form-container {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 2rem;
+    padding: 3rem 2rem;
     background: var(--navy-800);
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 .auth-form-wrapper {
     width: 100%;
     max-width: 440px;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .auth-header {
@@ -223,6 +228,42 @@ a:hover {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--navy-200);
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.label-row label {
+    margin: 0;
+}
+
+.forgot-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.forgot-link:hover {
+    color: var(--primary-light);
+}
+
+.auth-footer-text {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--navy-500);
+    margin-top: 1.5rem;
+}
+
+.auth-footer-text a {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.auth-footer-text a:hover {
+    color: var(--primary-light);
 }
 
 .input-wrapper {
@@ -526,6 +567,8 @@ a:hover {
 @media (max-width: 768px) {
     .auth-container {
         flex-direction: column;
+        height: auto;
+        min-height: 100vh;
     }
 
     .auth-branding {

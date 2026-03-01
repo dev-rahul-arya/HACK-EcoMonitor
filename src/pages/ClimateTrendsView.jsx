@@ -13,6 +13,24 @@ import useClimateAnalysis from '../hooks/useClimateAnalysis';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
+/* Inline SVG icon helpers — consistent with AIInsightsView */
+const cIco = (paths, size = 16) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: size, height: size, display: 'inline-block', verticalAlign: 'middle' }}>{paths}</svg>
+);
+const CIcoAlert = (s = 16) => cIco(<><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>, s);
+const CIcoCpu = (s = 16) => cIco(<><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></>, s);
+const CIcoSearch = (s = 16) => cIco(<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>, s);
+const CIcoClock = (s = 16) => cIco(<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>, s);
+const CIcoZap = (s = 16) => cIco(<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>, s);
+const CIcoRocket = (s = 16) => cIco(<><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></>, s);
+const CIcoWave = (s = 16) => cIco(<><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></>, s);
+const CIcoEye = (s = 16) => cIco(<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>, s);
+/* Season icons */
+const CIcoSnow = (s = 16) => cIco(<><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="8" y1="20" x2="8.01" y2="20"/><line x1="12" y1="18" x2="12.01" y2="18"/><line x1="12" y1="22" x2="12.01" y2="22"/><line x1="16" y1="16" x2="16.01" y2="16"/><line x1="16" y1="20" x2="16.01" y2="20"/></>, s);
+const CIcoSprout = (s = 16) => cIco(<><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></>, s);
+const CIcoSun = (s = 16) => cIco(<><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>, s);
+const CIcoLeaf = (s = 16) => cIco(<><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 10-10 11z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></>, s);
+
 /** Minimal Markdown → HTML renderer (no dependencies) */
 function renderMarkdown(md) {
     if (!md) return '';
@@ -233,7 +251,7 @@ export default function ClimateTrendsView() {
         const recentVariability = decadal.slice(-3).reduce((s, d) => s + d.range, 0) / Math.min(3, decadal.length);
         const varChange = recentVariability - avgVariability;
         findings.push({
-            icon: '🔀',
+            icon: CIcoZap(),
             title: 'Temperature Variability',
             detail: `Standard deviation: σ = ${risk.factors.variability}°C across ${stats.totalRecords} yearly records. Recent decades show ${varChange > 0.1 ? 'increasing' : varChange < -0.1 ? 'decreasing' : 'stable'} year-to-year variability (avg range: ${recentVariability.toFixed(2)}°C vs historical ${avgVariability.toFixed(2)}°C).`,
             category: 'variability',
@@ -245,7 +263,7 @@ export default function ClimateTrendsView() {
             const coldCount = anomalies.filter(a => a.type === 'cold').length;
             const latestAnomaly = anomalies[anomalies.length - 1];
             findings.push({
-                icon: '⚠️',
+                icon: CIcoAlert(),
                 title: `${anomalies.length} Anomalous Years Identified`,
                 detail: `Σ-threshold analysis (>1.5σ) flagged ${warmCount} warm and ${coldCount} cold anomalies. Most recent: ${latestAnomaly.year} at ${latestAnomaly.temp}°C (${latestAnomaly.deviation > 0 ? '+' : ''}${latestAnomaly.deviation}σ).`,
                 category: 'anomaly',
@@ -255,7 +273,7 @@ export default function ClimateTrendsView() {
         // 4. Acceleration check
         const accel = risk.factors.acceleration;
         findings.push({
-            icon: accel > 0.1 ? '🚀' : accel < -0.1 ? '🐢' : '➡️',
+            icon: accel > 0.1 ? CIcoRocket() : accel < -0.1 ? CIcoClock() : CIcoZap(),
             title: accel > 0.1 ? 'Warming Acceleration Detected' : accel < -0.1 ? 'Warming Deceleration' : 'Steady Rate of Change',
             detail: `Comparing last 3 decades to first 3 decades shows a ${accel > 0 ? '+' : ''}${accel.toFixed(3)}°C shift in average temperature. ${accel > 0.2 ? 'This suggests warming is accelerating.' : 'Change is within moderate bounds.'}`,
             category: 'acceleration',
@@ -266,7 +284,7 @@ export default function ClimateTrendsView() {
             const proj25 = projections[24]; // 25 years out
             const proj50 = projections[projections.length - 1]; // 50 years out
             findings.push({
-                icon: '🔮',
+                icon: CIcoEye(),
                 title: 'Forward Projections (Linear Model)',
                 detail: `Extrapolating current trends: ${proj25.year} → ${proj25.predicted}°C (±${(proj25.upper - proj25.predicted).toFixed(2)}°C at 95% CI). ${proj50.year} → ${proj50.predicted}°C (±${(proj50.upper - proj50.predicted).toFixed(2)}°C). Uncertainty grows with projection distance.`,
                 category: 'projection',
@@ -279,7 +297,7 @@ export default function ClimateTrendsView() {
             const gaps = landOceanYears.map(y => y.landAvg - y.landOceanAvg);
             const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
             findings.push({
-                icon: '🌊',
+                icon: CIcoWave(),
                 title: 'Land-Ocean Temperature Differential',
                 detail: `Land temperatures average ${avgGap > 0 ? '+' : ''}${avgGap.toFixed(2)}°C relative to combined land+ocean. ${avgGap > 0 ? 'Land warms faster than oceans, consistent with lower ocean thermal inertia effect on land masses.' : 'Temperature gap is within expected range.'}`,
                 category: 'comparison',
@@ -397,98 +415,7 @@ export default function ClimateTrendsView() {
                     </div>
                 </div>
 
-                {/* ★ AI Climate Analysis — CSV stats → compact digest → Gemini */}
-                <div className="climate-ai-analysis-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '1.5rem', marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <div>
-                            <h3 style={{ margin: 0, color: '#e5e7eb' }}>🤖 AI Climate Analysis</h3>
-                            <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Pre-compute stats → send compact digest to Gemini → save ~90% tokens</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <label style={{ fontSize: '0.8rem', color: '#9ca3af' }}>From
-                                <input type="number" min={1750} max={2025} value={startYear}
-                                    onChange={e => setStartYear(+e.target.value)}
-                                    style={{ width: 72, marginLeft: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#e5e7eb', fontSize: '0.85rem' }} />
-                            </label>
-                            <label style={{ fontSize: '0.8rem', color: '#9ca3af' }}>To
-                                <input type="number" min={1750} max={2025} value={endYear}
-                                    onChange={e => setEndYear(+e.target.value)}
-                                    style={{ width: 72, marginLeft: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#e5e7eb', fontSize: '0.85rem' }} />
-                            </label>
-                            <button
-                                onClick={() => runClimateAnalysis(startYear, endYear)}
-                                disabled={aiClimateLoading}
-                                style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: aiClimateLoading ? '#374151' : 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff', cursor: aiClimateLoading ? 'wait' : 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
-                                {aiClimateLoading ? '⏳ Analyzing...' : '🔍 Analyze'}
-                            </button>
-                            {aiClimateAnalysis && (
-                                <button onClick={resetClimateAnalysis}
-                                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>
-                                    Clear
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {aiClimateError && (
-                        <div style={{ padding: '0.75rem 1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, color: '#fca5a5', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                            ⚠ {aiClimateError}
-                        </div>
-                    )}
-
-                    {aiClimateLoading && (
-                        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
-                            <div className="loading-spinner" style={{ margin: '0 auto 0.75rem' }}></div>
-                            <p>Computing stats for {startYear}–{endYear}, then generating AI narrative...</p>
-                        </div>
-                    )}
-
-                    {/* Pre-computed stats chips (shown immediately, no AI tokens needed) */}
-                    {aiClimateStats && (
-                        <div style={{ marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                                {[
-                                    { label: 'Period', value: aiClimateStats.stats?.yearRange, color: '#93c5fd' },
-                                    { label: 'Records', value: `${aiClimateStats.stats?.monthlyRecords} mo / ${aiClimateStats.stats?.totalRecords} yr`, color: '#93c5fd' },
-                                    { label: 'Mean', value: `${aiClimateStats.stats?.overallMean}°C`, color: '#fde68a' },
-                                    { label: 'Trend', value: `${aiClimateStats.trend?.slopePerDecade > 0 ? '+' : ''}${aiClimateStats.trend?.slopePerDecade}°C/decade`, color: aiClimateStats.trend?.slopePerDecade > 0 ? '#fca5a5' : '#86efac' },
-                                    { label: 'R²', value: aiClimateStats.trend?.rSquared, color: '#c4b5fd' },
-                                    { label: 'Hottest', value: `${aiClimateStats.stats?.hottest?.year} (${aiClimateStats.stats?.hottest?.temp}°C)`, color: '#fca5a5' },
-                                    { label: 'Coldest', value: `${aiClimateStats.stats?.coldest?.year} (${aiClimateStats.stats?.coldest?.temp}°C)`, color: '#7dd3fc' },
-                                    { label: 'Change', value: `${aiClimateStats.stats?.totalChange > 0 ? '+' : ''}${aiClimateStats.stats?.totalChange}°C`, color: '#fde68a' },
-                                    { label: 'Risk', value: `${aiClimateStats.risk?.score}/100 (${aiClimateStats.risk?.level})`, color: aiClimateStats.risk?.color || '#9ca3af' },
-                                    { label: 'Anomalies', value: `${aiClimateStats.anomalySummary?.total} (${aiClimateStats.anomalySummary?.warm}🔴 ${aiClimateStats.anomalySummary?.cold}🔵)`, color: '#fbbf24' },
-                                ].filter(c => c.value != null).map((chip, i) => (
-                                    <div key={i} style={{ padding: '0.35rem 0.65rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: '0.78rem' }}>
-                                        <span style={{ color: '#6b7280' }}>{chip.label}: </span>
-                                        <span style={{ color: chip.color, fontWeight: 600 }}>{chip.value}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            {aiClimateMeta?.tokenStrategy && (
-                                <div style={{ fontSize: '0.72rem', color: '#4b5563', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <span>⚡ Strategy: {aiClimateMeta.tokenStrategy}</span>
-                                    <span>•</span>
-                                    <span>Source: {aiClimateMeta.source}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {aiClimateAnalysis && (
-                        <div>
-                            <div className="ai-markdown-output"
-                                style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.2)', borderRadius: 10, lineHeight: 1.7, color: '#d1d5db', fontSize: '0.9rem', maxHeight: 600, overflowY: 'auto' }}
-                                dangerouslySetInnerHTML={{ __html: renderMarkdown(aiClimateAnalysis) }} />
-                        </div>
-                    )}
-
-                    {!aiClimateAnalysis && !aiClimateLoading && !aiClimateError && (
-                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#6b7280', fontSize: '0.85rem' }}>
-                            <p>Select a year range and click <strong>Analyze</strong> to compute statistics and get AI-powered insights.</p>
-                        </div>
-                    )}
-                </div>
+                {/* AI Climate Analysis card removed — merged into Policy Brief below */}
 
                 {/* Risk Index Card */}
                 <div className="climate-risk-card">
@@ -615,7 +542,7 @@ export default function ClimateTrendsView() {
                             <div className="seasonal-stats">
                                 {seasonalData.map((s, i) => {
                                     const colors = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b'];
-                                    const icons = ['❄️', '🌱', '☀️', '🍂'];
+                                    const icons = [CIcoSnow(18), CIcoSprout(18), CIcoSun(18), CIcoLeaf(18)];
                                     return (
                                         <div key={i} className="seasonal-stat-item">
                                             <span className="seasonal-icon">{icons[i]}</span>
@@ -659,27 +586,111 @@ export default function ClimateTrendsView() {
                     </div>
                 </div>
 
-                {/* ===== AI POLICY BRIEF (AI-enhanced, based on our computed data) ===== */}
+                {/* ===== MERGED: AI Climate Analysis + Policy Brief ===== */}
                 <div className="climate-policy-card">
-                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
                         <div>
                             <h3>AI-Enhanced Policy Brief</h3>
-                            <span className="findings-subtitle">Gemini synthesizes our algorithmic outputs into actionable policy guidance</span>
+                            <span className="findings-subtitle">Compute stats → AI climate analysis → synthesize into actionable policy guidance</span>
                         </div>
-                        <button className="ai-recs-btn" onClick={generatePolicyBrief} disabled={policyLoading || policyCooldown || !!policyBrief}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
-                                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
-                            </svg>
-                            <span>{policyLoading ? 'Generating Brief...' : policyBrief ? 'Brief Generated ✓' : 'Generate Policy Brief'}</span>
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#9ca3af' }}>From
+                                <input type="number" min={1750} max={2025} value={startYear}
+                                    onChange={e => setStartYear(+e.target.value)}
+                                    style={{ width: 72, marginLeft: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#e5e7eb', fontSize: '0.85rem' }} />
+                            </label>
+                            <label style={{ fontSize: '0.8rem', color: '#9ca3af' }}>To
+                                <input type="number" min={1750} max={2025} value={endYear}
+                                    onChange={e => setEndYear(+e.target.value)}
+                                    style={{ width: 72, marginLeft: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#e5e7eb', fontSize: '0.85rem' }} />
+                            </label>
+                            <button
+                                onClick={() => runClimateAnalysis(startYear, endYear)}
+                                disabled={aiClimateLoading}
+                                style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: aiClimateLoading ? '#374151' : 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff', cursor: aiClimateLoading ? 'wait' : 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                                {aiClimateLoading ? <>{CIcoClock(14)} Analyzing...</> : <>{CIcoSearch(14)} Analyze</>}
+                            </button>
+                            {aiClimateAnalysis && (
+                                <button onClick={resetClimateAnalysis}
+                                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#9ca3af', cursor: 'pointer', fontSize: '0.8rem' }}>
+                                    Clear
+                                </button>
+                            )}
+                            <button className="ai-recs-btn" onClick={generatePolicyBrief} disabled={policyLoading || policyCooldown || !!policyBrief}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+                                    <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+                                </svg>
+                                <span>{policyLoading ? 'Generating Brief...' : policyBrief ? 'Brief Generated ✓' : 'Generate Policy Brief'}</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="policy-content">
+                        {/* ── Climate Analysis Section ── */}
+                        {aiClimateError && (
+                            <div style={{ padding: '0.75rem 1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, color: '#fca5a5', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                                {CIcoAlert(14)} {aiClimateError}
+                            </div>
+                        )}
+
+                        {aiClimateLoading && (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                <div className="loading-spinner" style={{ margin: '0 auto 0.75rem' }}></div>
+                                <p>Computing stats for {startYear}–{endYear}, then generating AI narrative...</p>
+                            </div>
+                        )}
+
+                        {aiClimateStats && (
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                                    {[
+                                        { label: 'Period', value: aiClimateStats.stats?.yearRange, color: '#93c5fd' },
+                                        { label: 'Records', value: `${aiClimateStats.stats?.monthlyRecords} mo / ${aiClimateStats.stats?.totalRecords} yr`, color: '#93c5fd' },
+                                        { label: 'Mean', value: `${aiClimateStats.stats?.overallMean}°C`, color: '#fde68a' },
+                                        { label: 'Trend', value: `${aiClimateStats.trend?.slopePerDecade > 0 ? '+' : ''}${aiClimateStats.trend?.slopePerDecade}°C/decade`, color: aiClimateStats.trend?.slopePerDecade > 0 ? '#fca5a5' : '#86efac' },
+                                        { label: 'R²', value: aiClimateStats.trend?.rSquared, color: '#c4b5fd' },
+                                        { label: 'Hottest', value: `${aiClimateStats.stats?.hottest?.year} (${aiClimateStats.stats?.hottest?.temp}°C)`, color: '#fca5a5' },
+                                        { label: 'Coldest', value: `${aiClimateStats.stats?.coldest?.year} (${aiClimateStats.stats?.coldest?.temp}°C)`, color: '#7dd3fc' },
+                                        { label: 'Change', value: `${aiClimateStats.stats?.totalChange > 0 ? '+' : ''}${aiClimateStats.stats?.totalChange}°C`, color: '#fde68a' },
+                                        { label: 'Risk', value: `${aiClimateStats.risk?.score}/100 (${aiClimateStats.risk?.level})`, color: aiClimateStats.risk?.color || '#9ca3af' },
+                                        { label: 'Anomalies', value: `${aiClimateStats.anomalySummary?.total} (${aiClimateStats.anomalySummary?.warm} warm / ${aiClimateStats.anomalySummary?.cold} cold)`, color: '#fbbf24' },
+                                    ].filter(c => c.value != null).map((chip, i) => (
+                                        <div key={i} style={{ padding: '0.35rem 0.65rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: '0.78rem' }}>
+                                            <span style={{ color: '#6b7280' }}>{chip.label}: </span>
+                                            <span style={{ color: chip.color, fontWeight: 600 }}>{chip.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {aiClimateMeta?.tokenStrategy && (
+                                    <div style={{ fontSize: '0.72rem', color: '#4b5563', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <span>{CIcoZap(12)} Strategy: {aiClimateMeta.tokenStrategy}</span>
+                                        <span>•</span>
+                                        <span>Source: {aiClimateMeta.source}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {aiClimateAnalysis && (
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                <h4 style={{ margin: '0 0 0.5rem', color: '#e5e7eb', fontSize: '0.95rem' }}>{CIcoCpu(16)} AI Climate Analysis</h4>
+                                <div className="ai-markdown-output"
+                                    style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.2)', borderRadius: 10, lineHeight: 1.7, color: '#d1d5db', fontSize: '0.9rem', maxHeight: 600, overflowY: 'auto' }}
+                                    dangerouslySetInnerHTML={{ __html: renderMarkdown(aiClimateAnalysis) }} />
+                            </div>
+                        )}
+
+                        {/* ── Divider between analysis & policy brief ── */}
+                        {(aiClimateAnalysis || aiClimateStats) && (policyBrief || policyLoading) && (
+                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0.75rem 0 1rem' }}></div>
+                        )}
+
+                        {/* ── Policy Brief Section ── */}
                         {policyLoading ? (
                             <div className="ai-loading large"><div className="loading-spinner"></div><span>Synthesizing computed findings into policy brief...</span></div>
                         ) : policyBrief ? (
                             policyBrief.error ? (
-                                <div className="ai-error-msg">⚠ {policyBrief.error}</div>
+                                <div className="ai-error-msg">{CIcoAlert(14)} {policyBrief.error}</div>
                             ) : (
                                 <>
                                     {/* Pipeline indicator */}
@@ -764,7 +775,7 @@ export default function ClimateTrendsView() {
                                     {/* Data Limitations */}
                                     {policyBrief.dataLimitations?.length > 0 && (
                                         <div className="policy-limitations">
-                                            <h4>⚠ Data Limitations</h4>
+                                            <h4>{CIcoAlert()} Data Limitations</h4>
                                             <ul>
                                                 {policyBrief.dataLimitations.map((l, i) => <li key={i}>{l}</li>)}
                                             </ul>
@@ -772,7 +783,7 @@ export default function ClimateTrendsView() {
                                     )}
                                 </>
                             )
-                        ) : (
+                        ) : !aiClimateAnalysis && !aiClimateLoading && !aiClimateError ? (
                             <div className="ai-placeholder">
                                 <div className="pipeline-indicator faded">
                                     <div className="pipeline-step completed">
@@ -800,10 +811,9 @@ export default function ClimateTrendsView() {
                                         <span>AI Synthesis</span>
                                     </div>
                                 </div>
-                                <p>Our algorithms have already computed trend analysis, anomaly detection, and risk scoring above.</p>
-                                <p className="ai-placeholder-sub">Click "Generate Policy Brief" to have AI synthesize these computed results into a structured policy document with actionable recommendations.</p>
+                                <p>Select a year range and click <strong>Analyze</strong> to compute statistics and get AI-powered insights, then <strong>Generate Policy Brief</strong> to synthesize results into a structured policy document.</p>
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
 

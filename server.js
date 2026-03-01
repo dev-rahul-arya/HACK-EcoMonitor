@@ -264,6 +264,104 @@ function detectAnomalies(sensor, historical) {
     return anomalies;
 }
 
+/* Build meaningful offline predictions from locally detected anomalies */
+function buildOfflinePredictions(sensor, localAnoms) {
+    const predictions = [];
+    const air = sensor?.air || {};
+    const weather = sensor?.weather || {};
+    const water = sensor?.water || {};
+
+    // Generate predictions from each detected anomaly
+    for (const a of localAnoms) {
+        if (a.metric === 'AQI' && a.direction === 'rise') {
+            predictions.push({
+                metric: 'Air Quality Index',
+                risk: a.severity === 'critical' ? 'high' : 'medium',
+                prediction: `AQI currently ${a.value} (baseline ${a.baseline}). Elevated levels may persist or worsen in the next 6-12 hours if emission sources remain active.`,
+                timeframe: '6-12 hours',
+                probability: a.severity === 'critical' ? 0.8 : 0.6,
+            });
+        } else if (a.metric === 'PM2.5') {
+            predictions.push({
+                metric: 'PM2.5 Concentration',
+                risk: a.severity === 'critical' ? 'high' : 'medium',
+                prediction: `PM2.5 at ${a.value} μg/m³ exceeds safe limits. Fine particulate matter may accumulate further, especially during low-wind or inversion conditions.`,
+                timeframe: '6-8 hours',
+                probability: a.severity === 'critical' ? 0.75 : 0.55,
+            });
+        } else if (a.metric === 'Water pH') {
+            predictions.push({
+                metric: 'Water pH Level',
+                risk: a.severity === 'critical' ? 'high' : 'medium',
+                prediction: `pH at ${a.value} is outside the safe range (6.5-8.5). Without intervention, ${a.value < 6.5 ? 'acidification' : 'alkalinity'} may continue to drift.`,
+                timeframe: '8-12 hours',
+                probability: 0.6,
+            });
+        } else if (a.metric === 'Temperature') {
+            predictions.push({
+                metric: 'Temperature Anomaly',
+                risk: a.severity === 'critical' ? 'high' : 'medium',
+                prediction: `Temperature at ${a.value}°C deviates ${a.delta}°C from the recent average. ${a.direction === 'rise' ? 'Heat stress risk may increase' : 'Cold weather advisories may apply'}.`,
+                timeframe: '6-12 hours',
+                probability: 0.5,
+            });
+        } else if (a.metric === 'Humidity') {
+            predictions.push({
+                metric: 'Humidity Level',
+                risk: 'medium',
+                prediction: `Humidity at ${a.value}% — ${a.value > 85 ? 'respiratory stress and mold risk may increase' : 'dry conditions could aggravate respiratory and skin conditions'}.`,
+                timeframe: '6-8 hours',
+                probability: 0.5,
+            });
+        }
+    }
+
+    // Add general predictions based on sensor state if we have few detections
+    if (predictions.length < 2) {
+        const aqi = air.aqi || 0;
+        if (aqi > 100) {
+            predictions.push({
+                metric: 'Air Quality',
+                risk: aqi > 150 ? 'high' : 'medium',
+                prediction: `AQI at ${aqi} indicates ${aqi > 150 ? 'unhealthy' : 'moderate'} air quality. Sensitive groups should limit outdoor exposure.`,
+                timeframe: '6-12 hours',
+                probability: 0.55,
+            });
+        }
+        const uv = parseFloat(weather.uvIndex ?? 0);
+        if (uv > 6) {
+            predictions.push({
+                metric: 'UV Exposure',
+                risk: uv > 8 ? 'high' : 'medium',
+                prediction: `UV index at ${uv} — ${uv > 8 ? 'very high' : 'high'} risk of sunburn and skin damage during peak hours.`,
+                timeframe: '4-8 hours',
+                probability: 0.7,
+            });
+        }
+    }
+
+    // Fallback if nothing detected at all
+    if (predictions.length === 0) {
+        predictions.push({
+            metric: 'General Conditions',
+            risk: 'low',
+            prediction: 'Current environmental conditions appear stable. Continue routine monitoring.',
+            timeframe: '6-12 hours',
+            probability: 0.3,
+        });
+    }
+
+    const hasCritical = localAnoms.some(a => a.severity === 'critical');
+    const hasWarning = localAnoms.some(a => a.severity === 'warning');
+    const overallRisk = hasCritical ? 'high' : hasWarning ? 'medium' : 'low';
+
+    const summary = predictions.length > 1
+        ? `${predictions.length} potential anomalies predicted based on current sensor readings and detected deviations. ${hasCritical ? 'Immediate attention recommended for critical-level metrics.' : 'Monitor conditions closely.'}`
+        : predictions[0].prediction;
+
+    return { predictions, overallRisk, summary };
+}
+
 function parseSections(text) {
     const sections = { summary: '', concerns: [], recommendations: [], prediction: '' };
     let current = '';
@@ -775,7 +873,10 @@ app.post('/api/ai/predict-anomalies', async (req, res) => {
         cacheSet(ck, result);
         res.json(result);
     } catch {
-        res.json({ predictions: [], overallRisk: 'low', summary: 'Unable to generate predictions.', localAnomalies: localAnoms });
+        const offline = buildOfflinePredictions(sensor, localAnoms);
+        offline.localAnomalies = localAnoms;
+        cacheSet(ck, offline);
+        res.json(offline);
     }
 });
 
@@ -846,10 +947,10 @@ app.post('/api/ai/air-quality-recommendations', async (req, res) => {
     } catch {
         res.json({
             recommendations: [
-                { icon: '🏃', text: aqi <= 50 ? 'Air quality is ideal for outdoor activities.' : 'Limit outdoor physical activities.' },
-                { icon: '🪟', text: aqi <= 50 ? 'Great time to ventilate your home.' : 'Keep windows closed.' },
-                { icon: '😷', text: aqi <= 100 ? 'No mask needed.' : 'Wear an N95 mask outdoors.' },
-                { icon: '💧', text: 'Stay well hydrated.' },
+                { icon: 'run', text: aqi <= 50 ? 'Air quality is ideal for outdoor activities.' : 'Limit outdoor physical activities.' },
+                { icon: 'window', text: aqi <= 50 ? 'Great time to ventilate your home.' : 'Keep windows closed.' },
+                { icon: 'mask', text: aqi <= 100 ? 'No mask needed.' : 'Wear an N95 mask outdoors.' },
+                { icon: 'water', text: 'Stay well hydrated.' },
             ]
         });
     }
