@@ -24,8 +24,11 @@ export function AppProvider({ children }) {
     const [alertHistory, setAlertHistory] = useState([]);
     const [unreadAlertCount, setUnreadAlertCount] = useState(0);
     const [sensorList, setSensorList] = useState([]);
-    const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [aiAnalysis, setAiAnalysis] = useState(() => {
+        try { const cached = localStorage.getItem('eco_ai_analysis'); return cached ? JSON.parse(cached) : null; } catch { return null; }
+    });
     const [aiLoading, setAiLoading] = useState(false);
+    const [searchedLocation, setSearchedLocation] = useState(null);
     const [connected, setConnected] = useState(false);
     const [supabaseStatus, setSupabaseStatus] = useState({
         configured: false,
@@ -75,6 +78,7 @@ export function AppProvider({ children }) {
             const data = currentData || sensorsRef.current.generateSensorData();
             const analysis = await aiRef.current.analyzeEnvironmentalData(data, sensorsRef.current.getHistoricalData());
             setAiAnalysis(analysis);
+            try { localStorage.setItem('eco_ai_analysis', JSON.stringify(analysis)); } catch { /* storage full */ }
         } catch (error) {
             console.error('AI analysis error:', error);
         } finally {
@@ -184,6 +188,23 @@ export function AppProvider({ children }) {
             const weatherResponse = await fetch(weatherUrl);
             const weatherData = await weatherResponse.json();
             if (weatherData.current) {
+                // Update currentData with searched location's weather globally
+                setCurrentData(prev => {
+                    if (!prev) return prev;
+                    return {
+                        ...prev,
+                        location: `${location.name}, ${location.country}`,
+                        weather: {
+                            ...prev.weather,
+                            temperature: weatherData.current.temperature_2m,
+                            humidity: weatherData.current.relative_humidity_2m,
+                            windSpeed: weatherData.current.wind_speed_10m,
+                            pressure: weatherData.current.pressure_msl,
+                            uvIndex: weatherData.current.uv_index,
+                        },
+                    };
+                });
+                setSearchedLocation(`${location.name}, ${location.country}`);
                 showToast('success', 'Location Found', `Showing data for ${location.name}, ${location.country}`);
                 return { location, weather: weatherData.current };
             }
@@ -228,6 +249,7 @@ export function AppProvider({ children }) {
     const value = {
         currentData, historicalData, alertHistory, unreadAlertCount,
         sensorList, aiAnalysis, aiLoading, connected, supabaseStatus, lastSyncTime, isLoading,
+        searchedLocation,
         toasts, showToast, removeToast,
         refreshData, refreshAIAnalysis,
         markAlertRead, markAllAlertsRead,

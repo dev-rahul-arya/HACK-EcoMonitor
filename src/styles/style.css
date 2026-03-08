@@ -3269,6 +3269,46 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
+/* Emergency Action Buttons in Alert Detail Modal */
+.emergency-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.emergency-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: color-mix(in srgb, var(--action-color, #ef4444) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--action-color, #ef4444) 30%, transparent);
+    border-radius: var(--radius-md);
+    color: var(--action-color, #ef4444);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.emergency-action-btn:hover {
+    background: color-mix(in srgb, var(--action-color, #ef4444) 22%, transparent);
+    border-color: color-mix(in srgb, var(--action-color, #ef4444) 50%, transparent);
+    transform: translateY(-1px);
+}
+
+.emergency-action-btn:active {
+    transform: translateY(0);
+}
+
+.emergency-action-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
 /* Location Weather Details (Search Results) */
 .location-weather-details {
     padding: 0.5rem 0;
@@ -4959,13 +4999,548 @@ body {
     }
 }
 
+/* ============================================
+   Sidebar Collapsed State
+   ============================================ */
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed);
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .connection-status .status-text,
+.sidebar.collapsed .last-update,
+.sidebar.collapsed .sign-out-btn span {
+    display: none;
+}
+
+.sidebar.collapsed .logo {
+    justify-content: center;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.sidebar.collapsed .sign-out-btn {
+    justify-content: center;
+    padding: 0.625rem;
+}
+
+.sidebar.collapsed .connection-status {
+    justify-content: center;
+}
+
+.sidebar-collapse-btn {
+    position: absolute;
+    bottom: 80px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 101;
+    transition: all var(--transition-fast);
+}
+
+.sidebar-collapse-btn:hover {
+    background: var(--accent);
+    color: var(--white);
+    border-color: var(--accent);
+}
+
+.sidebar-collapse-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Adjust main content when sidebar is collapsed */
+.sidebar-is-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed);
+}
+
+/* ============================================
+   Spinning Refresh Icons
+   ============================================ */
+@keyframes spinRefresh {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.action-btn.spinning svg,
+.panel-action.spinning svg {
+    animation: spinRefresh 1s linear infinite;
+}
+
+.action-btn:disabled,
+.panel-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ============================================
+   Modal System
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    animation: modalSlideIn 0.25s ease;
+}
+
+.modal-content.modal-lg {
+    max-width: 700px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.modal-title-group h3 {
+    margin-bottom: 0.125rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.modal-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-section {
+    margin-bottom: 1.25rem;
+}
+
+.modal-section:last-child {
+    margin-bottom: 0;
+}
+
+.modal-section h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.modal-section p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.modal-metrics {
+    display: flex;
+    gap: 1rem;
+}
+
+.modal-metric {
+    flex: 1;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.modal-metric-label {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.modal-metric-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+.modal-rec-list {
+    list-style: none;
+}
+
+.modal-rec-list li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding: 0.5rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-rec-list li:last-child {
+    border-bottom: none;
+}
+
+.modal-rec-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+.modal-timestamp {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   AI Progress Stepper
+   ============================================ */
+.ai-progress-stepper {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 1rem 1rem;
+}
+
+.ai-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.35;
+    transition: all var(--transition-base);
+}
+
+.ai-step.active {
+    opacity: 1;
+}
+
+.ai-step.done {
+    opacity: 0.8;
+}
+
+.ai-step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all var(--transition-base);
+}
+
+.ai-step.active .ai-step-indicator {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent);
+}
+
+.ai-step.done .ai-step-indicator {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--white);
+}
+
+.ai-step.done .ai-step-indicator svg {
+    width: 18px;
+    height: 18px;
+}
+
+.ai-step-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.ai-step-label {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 100px;
+}
+
+.ai-step.active .ai-step-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.ai-progress-bar {
+    height: 3px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    margin: 0.5rem 2rem;
+    overflow: hidden;
+}
+
+.ai-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green-400));
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease;
+}
+
+.ai-progress-text {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    padding: 0.5rem 0 1rem;
+    animation: pulse 1.5s infinite;
+}
+
+/* ============================================
+   Mobile Responsive - Full Overhaul
+   ============================================ */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+        position: fixed;
+        z-index: 200;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-collapse-btn {
+        display: none;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 199;
+    }
+
+    .menu-toggle {
+        display: flex;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 150;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .top-header {
+        padding-left: 3.5rem;
+    }
+
+    .search-box {
+        display: none;
+    }
+
+    .header-right {
+        gap: 0.375rem;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .content-area {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .alerts-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .weather-main {
+        grid-template-columns: 1fr;
+    }
+
+    .weather-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .settings-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        max-width: 100%;
+        margin: 0.5rem;
+        max-height: 85vh;
+    }
+
+    .ai-progress-stepper {
+        gap: 0.75rem;
+    }
+
+    .ai-step-label {
+        font-size: 0.5625rem;
+        max-width: 70px;
+    }
+
+    .ai-step-indicator {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .alerts-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .alerts-actions {
+        flex-wrap: wrap;
+    }
+
+    .alerts-filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .weather-details {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-live-strip {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ai-progress-stepper {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .modal-metrics {
+        flex-direction: column;
+    }
+
+    .forecast-section h3 {
+        font-size: 0.875rem;
+    }
+
+    .weather-search-bar {
+        flex-direction: column;
+    }
+}
+
 /* Print Styles */
 @media print {
 
     .sidebar,
     .top-header,
     .quick-actions,
-    .modal {
+    .modal-overlay {
         display: none !important;
     }
 

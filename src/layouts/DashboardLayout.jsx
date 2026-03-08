@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopHeader from '../components/TopHeader';
@@ -17,10 +18,11 @@ const viewMeta = {
 export default function DashboardLayout() {
     const location = useLocation();
     const meta = viewMeta[location.pathname] || viewMeta['/dashboard'];
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     return (
-        <div className="app-container">
-            <Sidebar />
+        <div className={`app-container ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''}`}>
+            <Sidebar collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(c => !c)} />
             <main className="main-content">
                 <TopHeader title={meta.title} subtitle={meta.subtitle} />
                 <div className="content-area">

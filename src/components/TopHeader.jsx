@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function TopHeader({ title, subtitle }) {
-    const { refreshData, unreadAlertCount, searchLocation } = useApp();
+    const { refreshData, unreadAlertCount, searchLocation, searchedLocation } = useApp();
     const [searchValue, setSearchValue] = useState('');
+    const [refreshing, setRefreshing] = useState(false);
     const navigate = useNavigate();
 
     const handleSearch = (e) => {
@@ -12,6 +13,16 @@ export default function TopHeader({ title, subtitle }) {
             searchLocation(searchValue.trim());
         }
     };
+
+    const handleRefresh = useCallback(async () => {
+        if (refreshing) return;
+        setRefreshing(true);
+        try {
+            await refreshData();
+        } finally {
+            setTimeout(() => setRefreshing(false), 800);
+        }
+    }, [refreshing, refreshData]);
 
     return (
         <header className="top-header">
@@ -28,14 +39,19 @@ export default function TopHeader({ title, subtitle }) {
                     </svg>
                     <input
                         type="text"
-                        placeholder="Search city for weather (press Enter)"
+                        placeholder={searchedLocation ? `Current: ${searchedLocation}` : 'Search city to update all data...'}
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                         onKeyDown={handleSearch}
                     />
                 </div>
                 <div className="header-actions">
-                    <button className="action-btn" title="Refresh Data" onClick={() => refreshData()}>
+                    <button
+                        className={`action-btn ${refreshing ? 'spinning' : ''}`}
+                        title="Refresh Data"
+                        onClick={handleRefresh}
+                        disabled={refreshing}
+                    >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M23 4v6h-6" /><path d="M1 20v-6h6" />
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />

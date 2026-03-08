@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useApp } from '../context/AppContext';
 
@@ -183,10 +183,15 @@ const trendChartOpts = {
 export default function AIInsightsView() {
     const { currentData, historicalData, aiAnalysis, aiLoading, refreshAIAnalysis, exportReport, showToast, aiRef, sensorsRef } = useApp();
 
-    const [activeAction, setActiveAction] = useState(null); // 'trends' | 'anomalies' | 'recommendations' | 'report'
+    const [activeAction, setActiveAction] = useState(() => {
+        try { const cached = localStorage.getItem('eco_ai_active_action'); return cached || null; } catch { return null; }
+    });
     const [actionLoading, setActionLoading] = useState(false);
-    const [actionResult, setActionResult] = useState(null);
+    const [actionResult, setActionResult] = useState(() => {
+        try { const cached = localStorage.getItem('eco_ai_action_result'); return cached ? JSON.parse(cached) : null; } catch { return null; }
+    });
     const [cooldown, setCooldown] = useState(false); // 30s cooldown between AI calls
+    const [loadingStep, setLoadingStep] = useState(0); // progress stepper for UX
 
     const data = currentData || {};
     const aqiInfo = classifyAQI(data.air?.aqi ?? 0);
@@ -194,17 +199,33 @@ export default function AIInsightsView() {
     const localAnomalies = useMemo(() => currentData ? detectLocalAnomalies(currentData, historicalData) : [], [currentData, historicalData]);
     const trendData = useMemo(() => buildTrendChartData(historicalData), [historicalData]);
 
+    const AI_STEPS = [
+        { label: 'Collecting sensor data', icon: '1' },
+        { label: 'Computing local analytics', icon: '2' },
+        { label: 'Sending to Gemini AI', icon: '3' },
+        { label: 'Processing response', icon: '4' },
+    ];
+
     /* ---- Action handlers ---- */
     const handleAction = useCallback(async (type) => {
         setActiveAction(type);
         setActionLoading(true);
         setActionResult(null);
+        setLoadingStep(0);
 
         try {
+            // Step 1: Collect data
+            setLoadingStep(1);
             const sensorData = currentData || sensorsRef.current.generateSensorData();
             const hist = sensorsRef.current.getHistoricalData();
+
+            // Step 2: Local computation
+            setLoadingStep(2);
             const localAnoms = detectLocalAnomalies(sensorData, hist);
             const score = computeEnvironmentScore(sensorData);
+
+            // Step 3: AI call
+            setLoadingStep(3);
 
             if (type === 'trends') {
                 const aqiTrend = (hist.aqi?.length >= 3) ? (hist.aqi[hist.aqi.length - 1] - hist.aqi[0]) : 0;
@@ -215,10 +236,12 @@ export default function AIInsightsView() {
                     tempTrend,
                     anomalyCount: localAnoms.length,
                 });
+                setLoadingStep(4);
                 setActionResult({ type: 'trends', data: parsed, local: { aqiTrend, tempTrend, score, anomalyCount: localAnoms.length } });
 
             } else if (type === 'anomalies') {
                 const parsed = await aiRef.current.predictAnomalies(sensorData, hist);
+                setLoadingStep(4);
                 setActionResult({ type: 'anomalies', data: parsed, local: localAnoms });
 
             } else if (type === 'recommendations') {
@@ -227,10 +250,12 @@ export default function AIInsightsView() {
                     hist,
                     localAnoms.map(a => a.message),
                 );
+                setLoadingStep(4);
                 setActionResult({ type: 'recommendations', data: parsed });
 
             } else if (type === 'report') {
                 const analysis = await aiRef.current.analyzeEnvironmentalData(sensorData, hist);
+                setLoadingStep(4);
                 setActionResult({
                     type: 'report',
                     data: {
@@ -248,11 +273,21 @@ export default function AIInsightsView() {
             setActionResult({ type, error: `Analysis failed: ${err.message}` });
         } finally {
             setActionLoading(false);
-            // 30s cooldown to prevent quota burn
+            setLoadingStep(0);
             setCooldown(true);
             setTimeout(() => setCooldown(false), 30_000);
         }
     }, [currentData, sensorsRef, aiRef]);
+
+    // Persist AI action results to localStorage
+    useEffect(() => {
+        if (actionResult && !actionResult.error) {
+            try {
+                localStorage.setItem('eco_ai_action_result', JSON.stringify(actionResult));
+                localStorage.setItem('eco_ai_active_action', actionResult.type || '');
+            } catch { /* storage full */ }
+        }
+    }, [actionResult]);
 
     const handleExport = useCallback(() => {
         if (actionResult?.type === 'report' && actionResult.data) {
@@ -279,7 +314,31 @@ export default function AIInsightsView() {
         if (actionLoading) {
             return (
                 <div className="ai-output-area">
-                    <div className="ai-loading large"><div className="ai-loader"></div><span>Running analysis pipeline...</span></div>
+                    <div className="ai-progress-stepper">
+                        {AI_STEPS.map((step, i) => {
+                            const stepNum = i + 1;
+                            const isActive = loadingStep === stepNum;
+                            const isDone = loadingStep > stepNum;
+                            return (
+                                <div key={i} className={`ai-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`}>
+                                    <div className="ai-step-indicator">
+                                        {isDone ? (
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 12l2 2 4-4" /></svg>
+                                        ) : isActive ? (
+                                            <div className="ai-step-spinner"></div>
+                                        ) : (
+                                            <span>{step.icon}</span>
+                                        )}
+                                    </div>
+                                    <span className="ai-step-label">{step.label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="ai-progress-bar">
+                        <div className="ai-progress-fill" style={{ width: `${(loadingStep / AI_STEPS.length) * 100}%` }}></div>
+                    </div>
+                    <p className="ai-progress-text">{AI_STEPS[Math.min(loadingStep, AI_STEPS.length) - 1]?.label || 'Initializing...'}</p>
                 </div>
             );
         }

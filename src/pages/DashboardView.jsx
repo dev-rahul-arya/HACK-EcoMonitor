@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS, CategoryScale, LinearScale, PointElement,
@@ -33,6 +33,14 @@ export default function DashboardView() {
         currentData, historicalData, aiAnalysis, aiLoading, refreshAIAnalysis,
         alertHistory, sensorList, sensorsRef, exportReport, supabaseStatus, refreshSupabaseStatus
     } = useApp();
+
+    const [supabaseRefreshing, setSupabaseRefreshing] = useState(false);
+    const handleRefreshSupabase = useCallback(async () => {
+        if (supabaseRefreshing) return;
+        setSupabaseRefreshing(true);
+        try { await refreshSupabaseStatus(); }
+        finally { setTimeout(() => setSupabaseRefreshing(false), 800); }
+    }, [supabaseRefreshing, refreshSupabaseStatus]);
 
     const labels = useMemo(() =>
         historicalData.timestamps.map(t => t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })),
@@ -123,7 +131,7 @@ export default function DashboardView() {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
                             <h3>AI Analysis</h3>
                         </div>
-                        <button className="panel-action" onClick={refreshAIAnalysis} title="Refresh Analysis">
+                        <button className={`panel-action ${aiLoading ? 'spinning' : ''}`} onClick={refreshAIAnalysis} disabled={aiLoading} title="Refresh Analysis">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
                         </button>
                     </div>
@@ -200,7 +208,7 @@ export default function DashboardView() {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3h18v18H3z" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
                         <h3>Supabase Status</h3>
                     </div>
-                    <button className="panel-action" onClick={refreshSupabaseStatus} title="Refresh Supabase Status">
+                    <button className={`panel-action ${supabaseRefreshing ? 'spinning' : ''}`} onClick={handleRefreshSupabase} disabled={supabaseRefreshing} title="Refresh Supabase Status">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
                     </button>
                 </div>

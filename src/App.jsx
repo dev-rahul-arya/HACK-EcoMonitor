@@ -24,14 +24,23 @@ function RequireAuth({ children }) {
     return children;
 }
 
+function RedirectIfAuth({ children }) {
+    const { user, loading, authEnabled } = useAuth();
+
+    if (!authEnabled) return children;
+    if (loading) return null;
+    if (user) return <Navigate to="/dashboard" replace />;
+    return children;
+}
+
 export default function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/login" element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
+                    <Route path="/signup" element={<RedirectIfAuth><SignupPage /></RedirectIfAuth>} />
                     <Route
                         path="/dashboard"
                         element={
