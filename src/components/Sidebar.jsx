@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
-    const { connected, lastSyncTime } = useApp();
+    const { connected, lastSyncTime, unreadAlertCount } = useApp();
     const { logout } = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function Sidebar() {
         { to: '/dashboard/air-quality', label: 'Air Quality', icon: <path d="M12 2v6M12 22v-6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M22 12h-6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24" /> },
         { to: '/dashboard/water-quality', label: 'Water Quality', icon: <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /> },
         { to: '/dashboard/weather', label: 'Weather', icon: <><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /><circle cx="12" cy="12" r="4" /></> },
-        { to: '/dashboard/alerts', label: 'Alerts', icon: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></> },
+        { to: '/dashboard/alerts', label: 'Alerts', badge: unreadAlertCount, icon: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></> },
         { to: '/dashboard/ai-insights', label: 'AI Insights', icon: <><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" /><path d="M16 14v6a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-6" /><circle cx="12" cy="6" r="1" /></> },
         { to: '/dashboard/climate-trends', label: 'Climate Trends', icon: <><path d="M3 3v18h18" /><path d="M7 16l4-8 4 4 4-6" /></> },
     ];

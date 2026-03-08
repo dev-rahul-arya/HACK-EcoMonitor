@@ -31,7 +31,7 @@ export default function TopHeader({ title, subtitle }) {
                         placeholder="Search city for weather (press Enter)"
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
-                        onKeyPress={handleSearch}
+                        onKeyDown={handleSearch}
                     />
                 </div>
                 <div className="header-actions">
