@@ -102,7 +102,16 @@ export function AppProvider({ children }) {
     const exportReport = useCallback(async () => {
         try {
             const data = currentData || sensorsRef.current.generateSensorData();
-            const report = await aiRef.current.generateReport(data, sensorsRef.current.getHistoricalData(), alertsRef.current.getAlertHistory());
+            let report;
+            try {
+                report = await aiRef.current.generateReport(data, sensorsRef.current.getHistoricalData(), alertsRef.current.getAlertHistory());
+            } catch {
+                report = {
+                    generatedAt: new Date().toISOString(),
+                    currentReadings: data,
+                    recentAlerts: alertsRef.current.getAlertHistory().slice(0, 10),
+                };
+            }
             const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -112,6 +121,58 @@ export function AppProvider({ children }) {
             URL.revokeObjectURL(url);
             showToast('success', 'Report Exported', 'Environmental report has been downloaded');
         } catch { showToast('error', 'Export Failed', 'Unable to generate report'); }
+    }, [currentData, showToast]);
+
+    const exportReportCSV = useCallback(() => {
+        try {
+            const data = currentData || sensorsRef.current.generateSensorData();
+            const hist = sensorsRef.current.getHistoricalData();
+            const rows = [
+                ['Metric', 'Value', 'Unit'],
+                ['AQI', data.air.aqi, 'AQI'],
+                ['PM2.5', data.air.pm25, 'μg/m³'],
+                ['PM10', data.air.pm10, 'μg/m³'],
+                ['O3', data.air.o3, 'ppb'],
+                ['NO2', data.air.no2, 'ppb'],
+                ['SO2', data.air.so2, 'ppb'],
+                ['CO', data.air.co, 'ppm'],
+                ['Temperature', data.weather.temperature, '°C'],
+                ['Humidity', data.weather.humidity, '%'],
+                ['Wind Speed', data.weather.windSpeed, 'km/h'],
+                ['Pressure', data.weather.pressure, 'hPa'],
+                ['UV Index', data.weather.uvIndex, ''],
+                ['Condition', data.weather.condition, ''],
+                ['Water pH', data.water.ph, 'pH'],
+                ['Dissolved Oxygen', data.water.dissolvedOxygen, 'mg/L'],
+                ['Turbidity', data.water.turbidity, 'NTU'],
+                ['TDS', data.water.tds, 'ppm'],
+                ['Water Temperature', data.water.temperature, '°C'],
+                ['Conductivity', data.water.conductivity, 'μS/cm'],
+            ];
+            // Add historical data section
+            if (hist.timestamps?.length > 0) {
+                rows.push([]);
+                rows.push(['Timestamp', 'AQI', 'Temperature (°C)', 'Humidity (%)', 'Water pH']);
+                hist.timestamps.forEach((ts, i) => {
+                    rows.push([
+                        ts instanceof Date ? ts.toISOString() : ts,
+                        hist.aqi?.[i] ?? '',
+                        hist.temperature?.[i] ?? '',
+                        hist.humidity?.[i] ?? '',
+                        hist.waterPh?.[i] ?? '',
+                    ]);
+                });
+            }
+            const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ecomonitor-report-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'CSV Exported', 'Environmental data has been downloaded as CSV');
+        } catch { showToast('error', 'Export Failed', 'Unable to generate CSV report'); }
     }, [currentData, showToast]);
 
     const exportAlerts = useCallback(() => {
@@ -253,7 +314,7 @@ export function AppProvider({ children }) {
         toasts, showToast, removeToast,
         refreshData, refreshAIAnalysis,
         markAlertRead, markAllAlertsRead,
-        exportReport, exportAlerts, sendEmergencyAlert,
+        exportReport, exportReportCSV, exportAlerts, sendEmergencyAlert,
         saveSettings, loadSettings, searchLocation, refreshSupabaseStatus,
         sensorsRef, alertsRef, aiRef,
     };
