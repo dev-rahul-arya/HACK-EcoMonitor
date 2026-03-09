@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AlertsView() {
     const {
         alertHistory, markAlertRead, markAllAlertsRead, exportAlerts,
         alertsRef, saveSettings, loadSettings, showToast, sendEmergencyAlert
     } = useApp();
+    const { t } = useLanguage();
 
     const [severityFilter, setSeverityFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -59,8 +61,8 @@ export default function AlertsView() {
     const typeFilters = ['all', 'air', 'water', 'weather', 'system'];
 
     const getAlertTitle = (alert) => {
-        const titles = { air: 'Air Quality Alert', water: 'Water Quality Alert', weather: 'Weather Alert', system: 'System Alert', emergency: 'Emergency Alert' };
-        return titles[alert.type] || 'Environmental Alert';
+        const titles = { air: t('airQualityAlert'), water: t('waterQualityAlert'), weather: t('weatherAlert'), system: t('systemAlert'), emergency: t('systemAlert') };
+        return titles[alert.type] || t('alerts');
     };
 
     const getAlertIcon = (alert) => {
@@ -156,7 +158,7 @@ export default function AlertsView() {
                             </div>
                             <div className="alert-stat-info">
                                 <span className="alert-stat-value">{stats.total}</span>
-                                <span className="alert-stat-label">Total Alerts</span>
+                                <span className="alert-stat-label">{t('totalAlerts')}</span>
                             </div>
                         </div>
                         <div className="alert-stat-card">
@@ -165,7 +167,7 @@ export default function AlertsView() {
                             </div>
                             <div className="alert-stat-info">
                                 <span className="alert-stat-value">{stats.unread}</span>
-                                <span className="alert-stat-label">Unread</span>
+                                <span className="alert-stat-label">{t('unread')}</span>
                             </div>
                         </div>
                         <div className="alert-stat-card">
@@ -174,7 +176,7 @@ export default function AlertsView() {
                             </div>
                             <div className="alert-stat-info">
                                 <span className="alert-stat-value">{stats.bySeverity.critical}</span>
-                                <span className="alert-stat-label">Critical</span>
+                                <span className="alert-stat-label">{t('critical')}</span>
                             </div>
                         </div>
                         <div className="alert-stat-card">
@@ -183,7 +185,7 @@ export default function AlertsView() {
                             </div>
                             <div className="alert-stat-info">
                                 <span className="alert-stat-value">{stats.last24Hours}</span>
-                                <span className="alert-stat-label">Last 24h</span>
+                                <span className="alert-stat-label">{t('last24h')}</span>
                             </div>
                         </div>
                     </div>
@@ -193,7 +195,7 @@ export default function AlertsView() {
                 <div className="alerts-header">
                     <div className="alerts-filters-group">
                         <div className="alerts-filter-row">
-                            <span className="filter-label">Severity:</span>
+                            <span className="filter-label">{t('severity')}:</span>
                             <div className="alerts-filters">
                                 {severityFilters.map(f => (
                                     <button key={f} className={`filter-btn ${severityFilter === f ? 'active' : ''}`} onClick={() => setSeverityFilter(f)}>
@@ -203,7 +205,7 @@ export default function AlertsView() {
                             </div>
                         </div>
                         <div className="alerts-filter-row">
-                            <span className="filter-label">Type:</span>
+                            <span className="filter-label">{t('type')}:</span>
                             <div className="alerts-filters">
                                 {typeFilters.map(f => (
                                     <button key={f} className={`filter-btn type ${typeFilter === f ? 'active' : ''}`} onClick={() => setTypeFilter(f)}>
@@ -216,19 +218,19 @@ export default function AlertsView() {
                     <div className="alerts-actions">
                         <button className="btn-secondary" onClick={markAllAlertsRead}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg>
-                            <span>Mark All Read</span>
+                            <span>{t('markAllRead')}</span>
                         </button>
                         <button className="btn-secondary" onClick={exportAlerts}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                            <span>Export</span>
+                            <span>{t('export')}</span>
                         </button>
                         <button className="btn-secondary" onClick={clearAllAlerts}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
-                            <span>Clear All</span>
+                            <span>{t('clearAll')}</span>
                         </button>
                         <button className="btn-secondary" onClick={() => setShowSettingsModal(true)}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                            <span>Settings</span>
+                            <span>{t('settings')}</span>
                         </button>
                     </div>
                 </div>
@@ -261,14 +263,14 @@ export default function AlertsView() {
                                 <p className="timeline-message">{alert.message}</p>
                                 <div className="timeline-actions">
                                     {!alert.read && (
-                                        <button className="timeline-btn" onClick={() => markAlertRead(alert.id)}>Mark as read</button>
+                                        <button className="timeline-btn" onClick={() => markAlertRead(alert.id)}>{t('markAsRead')}</button>
                                     )}
-                                    <button className="timeline-btn" onClick={() => setDetailAlert(alert)}>More Details</button>
+                                    <button className="timeline-btn" onClick={() => setDetailAlert(alert)}>{t('moreDetails')}</button>
                                     <button className="timeline-btn dismiss" onClick={() => {
                                         alertsRef.current.alertHistory = alertsRef.current.alertHistory.filter(a => a.id !== alert.id);
                                         markAlertRead(alert.id);
                                         showToast('success', 'Dismissed', 'Alert removed');
-                                    }}>Dismiss</button>
+                                    }}>{t('dismiss')}</button>
                                 </div>
                             </div>
                         </div>
@@ -296,20 +298,20 @@ export default function AlertsView() {
                         </div>
                         <div className="modal-body">
                             <div className="modal-section">
-                                <h4>Description</h4>
+                                <h4>{t('description')}</h4>
                                 <p>{detailAlert.message}</p>
                             </div>
                             {detailAlert.value !== undefined && (
                                 <div className="modal-section">
-                                    <h4>Metrics</h4>
+                                    <h4>{t('metrics')}</h4>
                                     <div className="modal-metrics">
                                         <div className="modal-metric">
-                                            <span className="modal-metric-label">Current Value</span>
+                                            <span className="modal-metric-label">{t('currentValue')}</span>
                                             <span className="modal-metric-value">{detailAlert.value}</span>
                                         </div>
                                         {detailAlert.threshold && (
                                             <div className="modal-metric">
-                                                <span className="modal-metric-label">Threshold</span>
+                                                <span className="modal-metric-label">{t('threshold')}</span>
                                                 <span className="modal-metric-value">{detailAlert.threshold}</span>
                                             </div>
                                         )}
@@ -318,7 +320,7 @@ export default function AlertsView() {
                             )}
                             {getRecommendations(detailAlert).length > 0 && (
                                 <div className="modal-section">
-                                    <h4>Recommendations</h4>
+                                    <h4>{t('recommendations')}</h4>
                                     <ul className="modal-rec-list">
                                         {getRecommendations(detailAlert).map((rec, i) => (
                                             <li key={i}>{rec}</li>
@@ -328,7 +330,7 @@ export default function AlertsView() {
                             )}
                             {getEmergencyActions(detailAlert).length > 0 && (
                                 <div className="modal-section">
-                                    <h4>Emergency Actions</h4>
+                                    <h4>{t('emergencyActions')}</h4>
                                     <div className="emergency-actions-grid">
                                         {getEmergencyActions(detailAlert).map((action, i) => (
                                             <button
@@ -345,15 +347,15 @@ export default function AlertsView() {
                                 </div>
                             )}
                             <div className="modal-section">
-                                <h4>Timestamp</h4>
+                                <h4>{t('timestamp')}</h4>
                                 <p className="modal-timestamp">{new Date(detailAlert.timestamp).toLocaleString()}</p>
                             </div>
                         </div>
                         <div className="modal-footer">
                             {!detailAlert.read && (
-                                <button className="btn-primary" onClick={() => { markAlertRead(detailAlert.id); setDetailAlert(null); }}>Mark as Read</button>
+                                <button className="btn-primary" onClick={() => { markAlertRead(detailAlert.id); setDetailAlert(null); }}>{t('markAsRead')}</button>
                             )}
-                            <button className="btn-secondary" onClick={() => setDetailAlert(null)}>Close</button>
+                            <button className="btn-secondary" onClick={() => setDetailAlert(null)}>{t('close')}</button>
                         </div>
                     </div>
                 </div>
@@ -364,7 +366,12 @@ export default function AlertsView() {
                 <div className="modal-overlay" onClick={() => setShowSettingsModal(false)}>
                     <div className="modal-content modal-lg" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Alert Configuration</h3>
+                            <div className="modal-title-group">
+                                <div className="settings-icon-wrap">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                                </div>
+                                <h3>{t('alertConfiguration')}</h3>
+                            </div>
                             <button className="modal-close" onClick={() => setShowSettingsModal(false)}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                             </button>
@@ -372,46 +379,61 @@ export default function AlertsView() {
                         <div className="modal-body">
                             <div className="settings-columns">
                                 <div className="settings-col">
-                                    <h4>Notification Settings</h4>
-                                    <div className="form-group">
-                                        <label>Email Notifications</label>
-                                        <input type="email" placeholder="your@email.com" value={settings.email} onChange={e => setSettings(s => ({ ...s, email: e.target.value }))} />
+                                    <div className="settings-section-header">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                                        <h4>{t('notificationSettings')}</h4>
                                     </div>
-                                    <div className="form-group checkbox">
-                                        <input type="checkbox" checked={settings.emailEnabled} onChange={e => setSettings(s => ({ ...s, emailEnabled: e.target.checked }))} id="email-enabled" />
-                                        <label htmlFor="email-enabled">Enable email notifications</label>
+                                    <div className="settings-form-group">
+                                        <label className="settings-label">{t('emailNotifications')}</label>
+                                        <input type="email" className="settings-input" placeholder="your@email.com" value={settings.email} onChange={e => setSettings(s => ({ ...s, email: e.target.value }))} />
                                     </div>
-                                    <div className="form-group checkbox">
-                                        <input type="checkbox" checked={settings.criticalOnly} onChange={e => setSettings(s => ({ ...s, criticalOnly: e.target.checked }))} id="critical-only" />
-                                        <label htmlFor="critical-only">Critical alerts only</label>
+                                    <div className="settings-toggle-group">
+                                        <label className="settings-toggle" htmlFor="email-enabled">
+                                            <input type="checkbox" checked={settings.emailEnabled} onChange={e => setSettings(s => ({ ...s, emailEnabled: e.target.checked }))} id="email-enabled" />
+                                            <span className="toggle-slider"></span>
+                                            <span className="toggle-text">{t('enableEmail')}</span>
+                                        </label>
+                                    </div>
+                                    <div className="settings-toggle-group">
+                                        <label className="settings-toggle" htmlFor="critical-only">
+                                            <input type="checkbox" checked={settings.criticalOnly} onChange={e => setSettings(s => ({ ...s, criticalOnly: e.target.checked }))} id="critical-only" />
+                                            <span className="toggle-slider"></span>
+                                            <span className="toggle-text">{t('criticalOnly')}</span>
+                                        </label>
                                     </div>
                                 </div>
                                 <div className="settings-col">
-                                    <h4>Alert Thresholds</h4>
-                                    <div className="form-group">
-                                        <label>AQI Threshold <span className="range-value">{settings.aqiThreshold}</span></label>
-                                        <input type="range" min="50" max="300" step="10" value={settings.aqiThreshold} onChange={e => setSettings(s => ({ ...s, aqiThreshold: Number(e.target.value) }))} />
+                                    <div className="settings-section-header">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                                        <h4>{t('alertThresholds')}</h4>
+                                    </div>
+                                    <div className="settings-form-group">
+                                        <label className="settings-label">{t('aqiThreshold')} <span className="settings-range-badge">{settings.aqiThreshold}</span></label>
+                                        <input type="range" className="settings-range" min="50" max="300" step="10" value={settings.aqiThreshold} onChange={e => setSettings(s => ({ ...s, aqiThreshold: Number(e.target.value) }))} />
                                         <div className="range-labels"><span>50 (Good)</span><span>300 (Hazardous)</span></div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Max Temperature <span className="range-value">{settings.tempMax}°C</span></label>
-                                        <input type="range" min="30" max="50" step="1" value={settings.tempMax} onChange={e => setSettings(s => ({ ...s, tempMax: Number(e.target.value) }))} />
+                                    <div className="settings-form-group">
+                                        <label className="settings-label">{t('maxTemperature')} <span className="settings-range-badge">{settings.tempMax}°C</span></label>
+                                        <input type="range" className="settings-range" min="30" max="50" step="1" value={settings.tempMax} onChange={e => setSettings(s => ({ ...s, tempMax: Number(e.target.value) }))} />
                                         <div className="range-labels"><span>30°C</span><span>50°C</span></div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Water pH Range <span className="range-value">{settings.phMin} - {settings.phMax}</span></label>
+                                    <div className="settings-form-group">
+                                        <label className="settings-label">{t('waterPhRange')} <span className="settings-range-badge">{settings.phMin} - {settings.phMax}</span></label>
                                         <div className="range-dual">
-                                            <input type="number" min="0" max="7" step="0.1" value={settings.phMin} onChange={e => setSettings(s => ({ ...s, phMin: Number(e.target.value) }))} />
-                                            <span>to</span>
-                                            <input type="number" min="7" max="14" step="0.1" value={settings.phMax} onChange={e => setSettings(s => ({ ...s, phMax: Number(e.target.value) }))} />
+                                            <input type="number" className="settings-number-input" min="0" max="7" step="0.1" value={settings.phMin} onChange={e => setSettings(s => ({ ...s, phMin: Number(e.target.value) }))} />
+                                            <span className="range-separator">to</span>
+                                            <input type="number" className="settings-number-input" min="7" max="14" step="0.1" value={settings.phMax} onChange={e => setSettings(s => ({ ...s, phMax: Number(e.target.value) }))} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn-primary" onClick={handleSaveSettings}>Save Settings</button>
-                            <button className="btn-secondary" onClick={() => setShowSettingsModal(false)}>Cancel</button>
+                            <button className="btn-primary" onClick={handleSaveSettings}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+                                {t('saveSettings')}
+                            </button>
+                            <button className="btn-secondary" onClick={() => setShowSettingsModal(false)}>{t('cancel')}</button>
                         </div>
                     </div>
                 </div>

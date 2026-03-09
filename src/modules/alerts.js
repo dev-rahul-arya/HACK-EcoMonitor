@@ -65,12 +65,19 @@ class AlertService {
     addToHistory(alert) {
         this.alertHistory.unshift({ ...alert, id: this.generateAlertId(), timestamp: new Date().toISOString(), read: false });
         if (this.alertHistory.length > this.maxHistorySize) this.alertHistory = this.alertHistory.slice(0, this.maxHistorySize);
+        this.persistToStorage();
+    }
+
+    persistToStorage() {
+        try {
+            localStorage.setItem('eco_alert_history', JSON.stringify(this.alertHistory));
+        } catch { /* storage full or unavailable */ }
     }
 
     getAlertHistory() { return this.alertHistory; }
     getUnreadCount() { return this.alertHistory.filter(a => !a.read).length; }
-    markAsRead(alertId) { const alert = this.alertHistory.find(a => a.id === alertId); if (alert) alert.read = true; }
-    markAllAsRead() { this.alertHistory.forEach(a => a.read = true); }
+    markAsRead(alertId) { const alert = this.alertHistory.find(a => a.id === alertId); if (alert) { alert.read = true; this.persistToStorage(); } }
+    markAllAsRead() { this.alertHistory.forEach(a => a.read = true); this.persistToStorage(); }
 
     async processAnomalies(anomalies) {
         const sentAlerts = [];

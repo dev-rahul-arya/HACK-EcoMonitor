@@ -1,10 +1,11 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS, CategoryScale, LinearScale, PointElement,
     LineElement, ArcElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend, Filler);
 
@@ -31,16 +32,9 @@ function StatCard({ label, value, unit, trend, indicatorColor }) {
 export default function DashboardView() {
     const {
         currentData, historicalData, aiAnalysis, aiLoading, refreshAIAnalysis,
-        alertHistory, sensorList, sensorsRef, exportReport, supabaseStatus, refreshSupabaseStatus
+        alertHistory, sensorList, sensorsRef, exportReport
     } = useApp();
-
-    const [supabaseRefreshing, setSupabaseRefreshing] = useState(false);
-    const handleRefreshSupabase = useCallback(async () => {
-        if (supabaseRefreshing) return;
-        setSupabaseRefreshing(true);
-        try { await refreshSupabaseStatus(); }
-        finally { setTimeout(() => setSupabaseRefreshing(false), 800); }
-    }, [supabaseRefreshing, refreshSupabaseStatus]);
+    const { t } = useLanguage();
 
     const labels = useMemo(() =>
         historicalData.timestamps.map(t => t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })),
@@ -79,7 +73,7 @@ export default function DashboardView() {
         plugins: { legend: { position: 'right', labels: { color: '#9ca3af', font: { size: 11 } } } }
     };
 
-    if (!currentData) return <div className="view active"><p>Loading data...</p></div>;
+    if (!currentData) return <div className="view active"><p>{t('loadingData')}</p></div>;
 
     const aqiStatus = sensorsRef.current.getAQIStatus(currentData.air.aqi);
     const hist = historicalData;
@@ -107,19 +101,19 @@ export default function DashboardView() {
     return (
         <section className="view active" id="view-dashboard">
             <div className="stats-grid">
-                <StatCard label="Air Quality Index" value={currentData.air.aqi} unit="AQI" trend={sensorsRef.current.calculateTrend(hist.aqi)} indicatorColor={getIndicatorColor('aqi')} />
-                <StatCard label="Temperature" value={Math.round(currentData.weather.temperature)} unit="°C" trend={sensorsRef.current.calculateTrend(hist.temperature)} indicatorColor={getIndicatorColor('temp')} />
-                <StatCard label="Humidity" value={Math.round(currentData.weather.humidity)} unit="%" trend={sensorsRef.current.calculateTrend(hist.humidity)} indicatorColor={getIndicatorColor('humidity')} />
-                <StatCard label="Water pH Level" value={parseFloat(currentData.water.ph).toFixed(1)} unit="pH" trend={sensorsRef.current.calculateTrend(hist.waterPh)} indicatorColor="good" />
+                <StatCard label={t('airQualityIndex')} value={currentData.air.aqi} unit="AQI" trend={sensorsRef.current.calculateTrend(hist.aqi)} indicatorColor={getIndicatorColor('aqi')} />
+                <StatCard label={t('temperature')} value={Math.round(currentData.weather.temperature)} unit="°C" trend={sensorsRef.current.calculateTrend(hist.temperature)} indicatorColor={getIndicatorColor('temp')} />
+                <StatCard label={t('humidity')} value={Math.round(currentData.weather.humidity)} unit="%" trend={sensorsRef.current.calculateTrend(hist.humidity)} indicatorColor={getIndicatorColor('humidity')} />
+                <StatCard label={t('waterPhLevel')} value={parseFloat(currentData.water.ph).toFixed(1)} unit="pH" trend={sensorsRef.current.calculateTrend(hist.waterPh)} indicatorColor="good" />
             </div>
 
             <div className="charts-grid">
                 <div className="chart-card large">
-                    <div className="card-header"><h3>Environmental Trends</h3></div>
+                    <div className="card-header"><h3>{t('environmentalTrends')}</h3></div>
                     <div className="chart-container"><Line data={trendsData} options={chartOptions} /></div>
                 </div>
                 <div className="chart-card">
-                    <div className="card-header"><h3>Pollutant Distribution</h3></div>
+                    <div className="card-header"><h3>{t('pollutantDistribution')}</h3></div>
                     <div className="chart-container">{pollutantsData && <Doughnut data={pollutantsData} options={doughnutOptions} />}</div>
                 </div>
             </div>
@@ -129,7 +123,7 @@ export default function DashboardView() {
                     <div className="panel-header">
                         <div className="panel-title">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                            <h3>AI Analysis</h3>
+                            <h3>{t('aiAnalysis')}</h3>
                         </div>
                         <button className={`panel-action ${aiLoading ? 'spinning' : ''}`} onClick={refreshAIAnalysis} disabled={aiLoading} title="Refresh Analysis">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
@@ -137,14 +131,14 @@ export default function DashboardView() {
                     </div>
                     <div className="ai-content">
                         {aiLoading ? (
-                            <div className="ai-loading"><div className="ai-loader"></div><span>Analyzing environmental data...</span></div>
+                            <div className="ai-loading"><div className="ai-loader"></div><span>{t('analyzingData')}</span></div>
                         ) : aiAnalysis ? (
                             <>
-                                {aiAnalysis.summary && <div className="ai-insight"><div className="ai-insight-title">Summary</div><div className="ai-insight-text">{aiAnalysis.summary}</div></div>}
-                                {aiAnalysis.concerns?.length > 0 && <div className={`ai-insight ${aiAnalysis.concerns.length > 2 ? 'critical' : 'warning'}`}><div className="ai-insight-title">Concerns</div><div className="ai-insight-text">{aiAnalysis.concerns.join('. ')}</div></div>}
-                                {aiAnalysis.recommendations?.length > 0 && <div className="ai-insight"><div className="ai-insight-title">Recommendations</div><div className="ai-insight-text">{aiAnalysis.recommendations[0]}</div></div>}
+                                {aiAnalysis.summary && <div className="ai-insight"><div className="ai-insight-title">{t('summary')}</div><div className="ai-insight-text">{aiAnalysis.summary}</div></div>}
+                                {aiAnalysis.concerns?.length > 0 && <div className={`ai-insight ${aiAnalysis.concerns.length > 2 ? 'critical' : 'warning'}`}><div className="ai-insight-title">{t('concerns')}</div><div className="ai-insight-text">{aiAnalysis.concerns.join('. ')}</div></div>}
+                                {aiAnalysis.recommendations?.length > 0 && <div className="ai-insight"><div className="ai-insight-title">{t('recommendations')}</div><div className="ai-insight-text">{aiAnalysis.recommendations[0]}</div></div>}
                             </>
-                        ) : <p className="ai-insight-text">No significant concerns at this time.</p>}
+                        ) : <p className="ai-insight-text">{t('noConcerns')}</p>}
                     </div>
                 </div>
 
@@ -152,12 +146,12 @@ export default function DashboardView() {
                     <div className="panel-header">
                         <div className="panel-title">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                            <h3>Recent Alerts</h3>
+                            <h3>{t('recentAlerts')}</h3>
                         </div>
                     </div>
                     <div className="alerts-list">
                         {recentAlerts.length === 0 ? (
-                            <div className="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg><p>No active alerts</p></div>
+                            <div className="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg><p>{t('noActiveAlerts')}</p></div>
                         ) : recentAlerts.map(alert => (
                             <div key={alert.id} className="alert-item">
                                 <div className={`alert-icon ${alert.severity}`}>
@@ -176,9 +170,9 @@ export default function DashboardView() {
                     <div className="panel-header">
                         <div className="panel-title">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="9" cy="9" r="2" /><circle cx="15" cy="9" r="2" /><circle cx="9" cy="15" r="2" /><circle cx="15" cy="15" r="2" /></svg>
-                            <h3>Sensor Network</h3>
+                            <h3>{t('sensorNetwork')}</h3>
                         </div>
-                        <span className="sensor-count">{onlineSensors} / {sensorList.length} Online</span>
+                        <span className="sensor-count">{onlineSensors} / {sensorList.length} {t('online')}</span>
                     </div>
                     <div className="sensors-grid">
                         {sensorList.map(sensor => (
@@ -198,38 +192,8 @@ export default function DashboardView() {
             <div className="quick-actions">
                 <button className="quick-action-btn" onClick={exportReport}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                    <span>Export Report</span>
+                    <span>{t('exportReport')}</span>
                 </button>
-            </div>
-
-            <div className="panel" style={{ marginTop: '1rem' }}>
-                <div className="panel-header">
-                    <div className="panel-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3h18v18H3z" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
-                        <h3>Supabase Status</h3>
-                    </div>
-                    <button className={`panel-action ${supabaseRefreshing ? 'spinning' : ''}`} onClick={handleRefreshSupabase} disabled={supabaseRefreshing} title="Refresh Supabase Status">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
-                    </button>
-                </div>
-                <div className="ai-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(120px, 1fr))', gap: '0.75rem' }}>
-                    <div className="ai-insight">
-                        <div className="ai-insight-title">Configured</div>
-                        <div className="ai-insight-text">{supabaseStatus?.configured ? 'Yes' : 'No'}</div>
-                    </div>
-                    <div className="ai-insight">
-                        <div className="ai-insight-title">Connected</div>
-                        <div className="ai-insight-text">{supabaseStatus?.connected ? 'Yes' : 'No'}</div>
-                    </div>
-                    <div className="ai-insight">
-                        <div className="ai-insight-title">Authenticated</div>
-                        <div className="ai-insight-text">{supabaseStatus?.auth ? 'Yes' : 'No'}</div>
-                    </div>
-                    <div className="ai-insight">
-                        <div className="ai-insight-title">Tables Ready</div>
-                        <div className="ai-insight-text">{supabaseStatus?.tablesExist ? 'Yes' : 'No'}</div>
-                    </div>
-                </div>
             </div>
         </section>
     );

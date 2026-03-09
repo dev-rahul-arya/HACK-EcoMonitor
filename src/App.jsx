@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import { LanguageProvider } from './context/LanguageContext';
 import DashboardLayout from './layouts/DashboardLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -35,6 +36,7 @@ function RedirectIfAuth({ children }) {
 
 export default function App() {
     return (
+        <LanguageProvider>
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
@@ -63,5 +65,6 @@ export default function App() {
                 </Routes>
             </AuthProvider>
         </BrowserRouter>
+        </LanguageProvider>
     );
 }

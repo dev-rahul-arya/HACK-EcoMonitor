@@ -293,6 +293,10 @@ a:hover {
     transition: all 0.2s;
 }
 
+.input-wrapper:has(.toggle-password) input {
+    padding-right: 3rem;
+}
+
 .input-wrapper input::placeholder {
     color: var(--navy-500);
 }

@@ -190,7 +190,7 @@ export default function AIInsightsView() {
     const [actionResult, setActionResult] = useState(() => {
         try { const cached = localStorage.getItem('eco_ai_action_result'); return cached ? JSON.parse(cached) : null; } catch { return null; }
     });
-    const [cooldown, setCooldown] = useState(false); // 30s cooldown between AI calls
+    const [cooldown, setCooldown] = useState(0); // cooldown seconds remaining
     const [loadingStep, setLoadingStep] = useState(0); // progress stepper for UX
 
     const data = currentData || {};
@@ -274,10 +274,21 @@ export default function AIInsightsView() {
         } finally {
             setActionLoading(false);
             setLoadingStep(0);
-            setCooldown(true);
-            setTimeout(() => setCooldown(false), 30_000);
+            setCooldown(30);
         }
     }, [currentData, sensorsRef, aiRef]);
+
+    // Cooldown countdown timer
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setInterval(() => {
+            setCooldown(prev => {
+                if (prev <= 1) { clearInterval(timer); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [cooldown]);
 
     // Persist AI action results to localStorage
     useEffect(() => {
@@ -652,10 +663,10 @@ export default function AIInsightsView() {
                                 key={key}
                                 className={`ai-action-card ${activeAction === key ? 'active' : ''}`}
                                 onClick={() => key === 'report' && activeAction === 'report' && actionResult ? handleExport() : handleAction(key)}
-                                disabled={actionLoading || cooldown}
+                                disabled={actionLoading || cooldown > 0}
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{action.icon}</svg>
-                                <span>{cooldown && !actionLoading ? <>{IcoClock()} Cooldown…</> : action.label}</span>
+                                <span>{cooldown > 0 && !actionLoading ? <>{IcoClock()} {cooldown}s</> : action.label}</span>
                             </button>
                         ))}
                     </div>

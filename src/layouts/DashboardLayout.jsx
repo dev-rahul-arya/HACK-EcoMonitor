@@ -3,28 +3,30 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopHeader from '../components/TopHeader';
 import ToastContainer from '../components/ToastContainer';
+import { useLanguage } from '../context/LanguageContext';
 import '../styles/style.css';
 
 const viewMeta = {
-    '/dashboard': { title: 'Dashboard', subtitle: 'Real-time environmental overview' },
-    '/dashboard/air-quality': { title: 'Air Quality', subtitle: 'Detailed air quality analysis' },
-    '/dashboard/water-quality': { title: 'Water Quality', subtitle: 'Water safety monitoring' },
-    '/dashboard/weather': { title: 'Weather', subtitle: 'Weather conditions & forecast' },
-    '/dashboard/alerts': { title: 'Alerts', subtitle: 'Alert management center' },
-    '/dashboard/ai-insights': { title: 'AI Insights', subtitle: 'AI-powered environmental analysis' },
-    '/dashboard/climate-trends': { title: 'Climate Trends', subtitle: 'Historical climate analysis & risk assessment' },
+    '/dashboard': { titleKey: 'dashboard', subtitleKey: 'dashboardSubtitle' },
+    '/dashboard/air-quality': { titleKey: 'airQuality', subtitleKey: 'airQualitySubtitle' },
+    '/dashboard/water-quality': { titleKey: 'waterQuality', subtitleKey: 'waterQualitySubtitle' },
+    '/dashboard/weather': { titleKey: 'weather', subtitleKey: 'weatherSubtitle' },
+    '/dashboard/alerts': { titleKey: 'alerts', subtitleKey: 'alertsSubtitle' },
+    '/dashboard/ai-insights': { titleKey: 'aiInsights', subtitleKey: 'aiInsightsSubtitle' },
+    '/dashboard/climate-trends': { titleKey: 'climateTrends', subtitleKey: 'climateTrendsSubtitle' },
 };
 
 export default function DashboardLayout() {
     const location = useLocation();
     const meta = viewMeta[location.pathname] || viewMeta['/dashboard'];
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const { t } = useLanguage();
 
     return (
         <div className={`app-container ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''}`}>
             <Sidebar collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(c => !c)} />
             <main className="main-content">
-                <TopHeader title={meta.title} subtitle={meta.subtitle} />
+                <TopHeader title={t(meta.titleKey)} subtitle={t(meta.subtitleKey)} />
                 <div className="content-area">
                     <Outlet />
                 </div>

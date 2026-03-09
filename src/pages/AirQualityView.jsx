@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /* Inline SVG icon helpers for AirQualityView */
 const aqIco = (paths, size = 18) => (
@@ -26,6 +27,7 @@ function resolveIcon(icon) {
 
 export default function AirQualityView() {
     const { currentData, historicalData, sensorsRef, aiRef } = useApp();
+    const { t } = useLanguage();
     const [recommendations, setRecommendations] = useState(null);
     const [recsLoading, setRecsLoading] = useState(false);
     const [recsCooldown, setRecsCooldown] = useState(false);
@@ -74,7 +76,7 @@ export default function AirQualityView() {
         }
     };
 
-    if (!currentData) return <div className="view active"><p>Loading...</p></div>;
+    if (!currentData) return <div className="view active"><p>{t('loading')}</p></div>;
 
     const aqiStatus = sensorsRef.current.getAQIStatus(currentData.air.aqi);
     const markerPosition = Math.min((currentData.air.aqi / 300) * 100, 100);
@@ -85,7 +87,7 @@ export default function AirQualityView() {
                 <div className="detail-grid">
                     <div className="detail-card highlight">
                         <div className="detail-header">
-                            <span className="detail-label">Current AQI</span>
+                            <span className="detail-label">{t('currentAQI')}</span>
                             <span className={`detail-badge ${aqiStatus.color === 'poor' ? 'unhealthy' : aqiStatus.color}`}>{aqiStatus.status}</span>
                         </div>
                         <div className="detail-value">{currentData.air.aqi}</div>
@@ -113,13 +115,13 @@ export default function AirQualityView() {
                 </div>
 
                 <div className="chart-card full-width">
-                    <div className="card-header"><h3>Air Quality History</h3></div>
+                    <div className="card-header"><h3>{t('airQualityHistory')}</h3></div>
                     <div className="chart-container large"><Line data={chartData} options={chartOptions} /></div>
                 </div>
 
                 <div className="recommendations-section">
                     <div className="recommendations-header">
-                        <h3>Health Recommendations</h3>
+                        <h3>{t('healthRecommendations')}</h3>
                         <button
                             className="ai-recs-btn"
                             onClick={fetchRecommendations}
@@ -129,7 +131,7 @@ export default function AirQualityView() {
                                 <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
                                 <path d="M16 14v6a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-6" />
                             </svg>
-                            <span>{recsLoading ? 'Analyzing...' : recommendations ? 'Loaded ✓' : 'Get AI Recommendations'}</span>
+                            <span>{recsLoading ? t('analyzing') : recommendations ? `${t('loadedCheck')} ✓` : t('getAIRecommendations')}</span>
                         </button>
                     </div>
                     <div className="recommendations-list">

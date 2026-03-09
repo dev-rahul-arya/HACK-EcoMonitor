@@ -5,6 +5,7 @@ import {
     LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -87,6 +88,7 @@ function getUVLevel(uv) {
 
 export default function WeatherView() {
     const { currentData, sensorsRef, historicalData, searchLocation } = useApp();
+    const { t } = useLanguage();
     const [searchCity, setSearchCity] = useState('');
     const [realWeather, setRealWeather] = useState(null);
     const [searching, setSearching] = useState(false);
@@ -138,7 +140,7 @@ export default function WeatherView() {
         interaction: { intersect: false, mode: 'index' }
     };
 
-    if (!currentData) return <div className="view active"><p>Loading...</p></div>;
+    if (!currentData) return <div className="view active"><p>{t('loading')}</p></div>;
 
     const w = realWeather ? null : currentData.weather;
     const rw = realWeather?.weather;
@@ -150,7 +152,7 @@ export default function WeatherView() {
     const displayPressure = rw ? Math.round(rw.pressure_msl) : w.pressure;
     const displayUV = rw ? rw.uv_index : w.uvIndex;
     const displayCondition = rw ? getWMOCondition(rw.weather_code) : w.condition;
-    const displayLocation = loc ? `${loc.name}, ${loc.country}` : 'Current Location (Simulated)';
+    const displayLocation = loc ? `${loc.name}, ${loc.country}` : t('currentLocation');
     const displayVisibility = w ? `${w.visibility} km` : '--';
     const displayWindDir = w ? w.windDirection : 'N';
 
@@ -158,11 +160,11 @@ export default function WeatherView() {
 
     const weatherDetails = [
         {
-            label: 'Humidity', value: `${displayHumidity}%`,
+            label: t('humidity'), value: `${displayHumidity}%`,
             icon: <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />,
         },
         {
-            label: 'Wind', value: `${displayWind} km/h ${displayWindDir}`,
+            label: t('windSpeed'), value: `${displayWind} km/h ${displayWindDir}`,
             icon: <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />,
             extra: (
                 <div className="wind-direction-indicator" style={{ transform: `rotate(${getWindDirectionDeg(displayWindDir)}deg)` }}>
@@ -173,20 +175,20 @@ export default function WeatherView() {
             ),
         },
         {
-            label: 'Pressure', value: `${displayPressure} hPa`,
+            label: t('pressure'), value: `${displayPressure} hPa`,
             icon: <><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></>,
         },
         {
-            label: 'UV Index', value: `${displayUV}`,
+            label: t('uvIndex'), value: `${displayUV}`,
             icon: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></>,
             badge: <span className={`uv-badge ${uvLevel.color}`}>{uvLevel.label}</span>,
         },
         {
-            label: 'Visibility', value: displayVisibility,
+            label: t('visibility'), value: displayVisibility,
             icon: <><circle cx="12" cy="12" r="3" /><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /></>,
         },
         {
-            label: 'Feels Like', value: rw ? `${Math.round(rw.apparent_temperature)}°C` : `${Math.round(parseFloat(w.temperature) - 2 + Math.random() * 4)}°C`,
+            label: t('feelsLike'), value: rw ? `${Math.round(rw.apparent_temperature)}°C` : `${Math.round(parseFloat(w.temperature) - 2 + Math.random() * 4)}°C`,
             icon: <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />,
         },
     ];
@@ -210,7 +212,7 @@ export default function WeatherView() {
                         </svg>
                         <input
                             type="text"
-                            placeholder="Search any city for real weather data..."
+                            placeholder={t('searchCityWeather')}
                             value={searchCity}
                             onChange={e => setSearchCity(e.target.value)}
                             onKeyDown={handleSearch}
@@ -220,7 +222,7 @@ export default function WeatherView() {
                     </div>
                     {realWeather && (
                         <button className="btn-secondary" onClick={clearRealWeather}>
-                            Back to Simulated
+                            {t('backToSimulated')}
                         </button>
                     )}
                 </div>
@@ -229,13 +231,13 @@ export default function WeatherView() {
                 {realWeather && (
                     <div className="weather-source-badge live">
                         <span className="source-dot"></span>
-                        Live data from Open-Meteo API
+                        {t('liveData')}
                     </div>
                 )}
                 {!realWeather && (
                     <div className="weather-source-badge simulated">
                         <span className="source-dot"></span>
-                        Simulated sensor data
+                        {t('simulatedData')}
                     </div>
                 )}
 
@@ -274,7 +276,7 @@ export default function WeatherView() {
                 {/* Weather Warnings */}
                 {warnings.length > 0 && (
                     <div className="weather-alerts">
-                        <h3>Weather Warnings</h3>
+                        <h3>{t('weatherWarnings')}</h3>
                         <div className="warning-list">
                             {warnings.map((w, i) => (
                                 <div key={i} className={`warning-item ${w.severe ? 'severe' : ''}`}>
@@ -292,7 +294,7 @@ export default function WeatherView() {
                 {/* 24-Hour Forecast (simulated only) */}
                 {!realWeather && (
                     <div className="forecast-section">
-                        <h3>24-Hour Forecast</h3>
+                        <h3>{t('hourForecast')}</h3>
                         <div className="forecast-scroll">
                             {forecast.map((item, i) => (
                                 <div key={i} className="forecast-item">
@@ -315,7 +317,7 @@ export default function WeatherView() {
                 {/* Temperature History Chart */}
                 {!realWeather && historicalData.temperature.length > 0 && (
                     <div className="chart-card full-width">
-                        <div className="card-header"><h3>Temperature History</h3></div>
+                        <div className="card-header"><h3>{t('temperatureHistory')}</h3></div>
                         <div className="chart-container"><Line data={tempChartData} options={chartOptions} /></div>
                     </div>
                 )}
